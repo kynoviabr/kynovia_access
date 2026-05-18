@@ -62,8 +62,8 @@ No PR should be opened until the author has run and fixed failures from:
 
 - `pnpm lint`
 - `pnpm typecheck`
-- `pnpm build`
 - `pnpm test`, when available
+- `pnpm build`
 - Tests specific to the changed area, when available
 
 If a command is unavailable, the PR must explain why and describe the substitute validation used. Known bugs, skipped tests, or unresolved limitations must be documented before review.
@@ -83,8 +83,8 @@ Before opening a PR, run:
 ```bash
 pnpm lint
 pnpm typecheck
-pnpm build
 pnpm test
+pnpm build
 ```
 
 Run `pnpm test` when the script exists. Also run focused tests for the area changed, such as package, app, database, integration, or access-engine tests. Fix failures before requesting review.

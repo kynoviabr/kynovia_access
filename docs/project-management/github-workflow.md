@@ -40,6 +40,7 @@ Use branches and PRs for all changes.
 Stacked PRs are allowed for Codex-driven work when a follow-up depends on an open PR. In that case, make the base branch explicit in the PR description.
 
 See `docs/project-management/pre-pr-validation.md` for the required validation and correction cycle.
+See `docs/project-management/ci-cd-validation.md` for the baseline GitHub Actions pipeline.
 
 ## Labels
 

@@ -81,14 +81,15 @@ Required cycle:
 3. Fix lint failures.
 4. Run `pnpm typecheck`.
 5. Fix type errors.
-6. Run `pnpm build`.
-7. Fix build failures.
-8. Run `pnpm test` when the script exists.
-9. Run tests specific to the changed area when available.
-10. Fix bugs found by automated or area-specific tests.
-11. Manually test the affected flow when a user-facing or operational flow changes.
-12. Document known limitations, skipped checks, or unavailable tests in the PR body.
-13. Only then open or update the Pull Request.
+6. Run `pnpm test` when the script exists.
+7. Fix bugs found by automated tests.
+8. Run `pnpm build`.
+9. Fix build failures.
+10. Run tests specific to the changed area when available.
+11. Fix bugs found by area-specific tests.
+12. Manually test the affected flow when a user-facing or operational flow changes.
+13. Document known limitations, skipped checks, or unavailable tests in the PR body.
+14. Only then open or update the Pull Request.
 
 If a validation command cannot run because the project lacks the script or required external service, state that explicitly in the PR body and provide the best available substitute validation. Do not ignore failing checks.
 

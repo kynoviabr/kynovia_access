@@ -9,10 +9,10 @@ Every Pull Request must pass through a validation and correction cycle before it
 3. Fix lint issues.
 4. Run typecheck.
 5. Fix type errors.
-6. Run build.
-7. Fix build failures.
-8. Run automated tests when they exist.
-9. Fix bugs found by tests.
+6. Run automated tests when they exist.
+7. Fix bugs found by tests.
+8. Run build.
+9. Fix build failures.
 10. Manually test the affected flow.
 11. Only then open the Pull Request.
 
@@ -23,8 +23,8 @@ Use the standard commands when available:
 ```bash
 pnpm lint
 pnpm typecheck
-pnpm build
 pnpm test
+pnpm build
 ```
 
 Run `pnpm test` when the script exists. Also run focused tests for changed apps, packages, database behavior, integrations, or access-engine rules when those tests exist.
