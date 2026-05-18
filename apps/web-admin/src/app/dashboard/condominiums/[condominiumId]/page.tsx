@@ -112,6 +112,15 @@ export default async function CondominiumDetailPage({
       {unitsError ? <p className="form-error">Falha ao carregar unidades.</p> : null}
       {accessPointsError ? <p className="form-error">Falha ao carregar portoes.</p> : null}
 
+      <section className="quick-actions">
+        <Link className="button-link" href={`/dashboard/condominiums/${condominium.id}/residents`}>
+          Moradores e veiculos
+        </Link>
+        <Link className="button-link" href={`/dashboard/condominiums/${condominium.id}/visitors`}>
+          Visitantes
+        </Link>
+      </section>
+
       <section className="admin-grid two-columns">
         <div className="admin-section">
           <h2>Dados do condominio</h2>

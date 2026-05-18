@@ -186,6 +186,13 @@ button.danger {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 20px;
+}
+
 .admin-section {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -291,6 +298,76 @@ td input {
   margin-top: 4px;
 }
 
+.management-record {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: grid;
+  gap: 18px;
+  padding: 16px;
+}
+
+.record-grid {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.record-subgrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.record-subgrid h3,
+.management-record h3 {
+  font-size: 0.95rem;
+  margin: 0 0 10px;
+}
+
+.compact-form {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.checkbox-label {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.checkbox-label input {
+  min-height: auto;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.chip,
+.nested-row {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+
+.compact-button {
+  min-height: 32px;
+  padding: 0 10px;
+}
+
+.nested-row {
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
 .app-panel form {
   margin-top: 12px;
 }
@@ -304,8 +381,11 @@ td input {
 
   .admin-grid,
   .admin-grid.two-columns,
+  .record-grid,
+  .record-subgrid,
   .filter-form,
-  .inline-form {
+  .inline-form,
+  .compact-form {
     grid-template-columns: 1fr;
   }
 
