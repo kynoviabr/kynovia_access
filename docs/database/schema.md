@@ -18,6 +18,7 @@ This document summarizes the foundation schema created for Kynovia Access.
 - `resident_vehicles`: resident vehicles, unique by condominium and plate.
 - `visitors`: visitor records scoped to a condominium.
 - `visitor_vehicles`: visitor vehicle plates.
+- `visitor_unit_visits`: visitor history linked to a condominium unit.
 
 ## Access Control
 
@@ -50,3 +51,15 @@ This supports tenant-wide administration and condominium-level isolation.
   `condominium_id`, `block`, and `number`.
 - Visitor parking capacity is stored on `condominiums.visitor_parking_capacity` and constrained to
   non-negative values.
+
+## Phase 05 Resident And Visitor Rules
+
+- Residents are scoped by `tenant_id` and `condominium_id`.
+- Resident status must be `active`, `inactive`, or `blocked`.
+- Blocked residents and resident vehicles may carry a block reason and timestamp.
+- Resident vehicles are normalized by plate before write and remain unique per condominium.
+- Resident-unit links are stored in `resident_units` and support primary unit markers.
+- Visitors are basic contact records scoped to a condominium.
+- Visitor history by unit is stored in `visitor_unit_visits`.
+- Bulk resident CSV import is planned separately and documented in
+  `docs/implementation/resident-csv-import.md`.
