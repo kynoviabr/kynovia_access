@@ -8,21 +8,49 @@ Database structure is defined in `supabase/migrations`.
 
 Local seed data is defined in `supabase/seed.sql`.
 
-## Initial Model
+## Current Model
 
-The first migration establishes base multi-tenant tables:
+The database model is intentionally tenant-aware from the first production-facing schema.
 
 - `tenants`
 - `condominiums`
 - `profiles`
 - `access_points`
+- `condominium_memberships`
+- `units`
+- `residents`
+- `resident_units`
+- `resident_vehicles`
+- `visitors`
+- `visitor_vehicles`
+- `access_invites`
+- `access_events`
+- `gate_commands`
+- `audit_logs`
 
-Row Level Security is enabled on the initial tables. Concrete policies will be added with the first authenticated product flows.
+Every operational table carries `tenant_id` and, when scoped to a property, `condominium_id`.
+
+Row Level Security is enabled on tenant-owned and operational tables. Initial policies use the authenticated user's `profiles` row and condominium memberships to enforce tenant and condominium access boundaries.
 
 ## Conventions
 
 - Use UUID primary keys.
 - Include `tenant_id` on tenant-owned records.
+- Include `condominium_id` on condominium-scoped records.
 - Add indexes for tenant and parent lookup paths.
 - Keep migrations append-only after they have been applied to shared environments.
 - Document generated database types when Supabase type generation is introduced.
+
+## Environment Projects
+
+Supabase environments are tracked separately:
+
+- DEV: `kynovia-access-dev` / `gexmghjenqourlovtelj`
+- STAGING: pending project creation after cost confirmation.
+- PROD: pending project creation after cost confirmation.
+
+See `docs/database/supabase-projects.md` for project setup and promotion expectations.
+
+## RLS
+
+See `docs/security/rls-policy-model.md` for the initial policy model.
