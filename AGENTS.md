@@ -57,6 +57,14 @@ When trade-offs are necessary, use this order:
 - `@kynovia/access-engine`: access decision contracts and future policy engine.
 - `@kynovia/integrations`: external provider contracts.
 
+## Design System
+
+- Use `docs/design-system/security-gatehouse-design-system.md` as the baseline for authenticated product screens.
+- Build operational screens for fast scanning, clear status semantics, keyboard-friendly workflows, and auditability.
+- Prefer shared UI primitives for page headers, buttons, badges, KPI cards, tables, dialogs, drawers, and toasts.
+- Do not hardcode page-specific colors. Centralize semantic variants such as `primary`, `success`, `warning`, `destructive`, `muted`, and `info`.
+- Keep admin, doorman, and resident app flows consistent with the design system before adding new visual patterns.
+
 ## Quality Checks
 
 Before opening or updating a pull request, run:
