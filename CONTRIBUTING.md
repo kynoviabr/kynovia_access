@@ -21,6 +21,51 @@ docs/database-rls-model
 codex/initial-project-structure
 ```
 
+Recommended prefixes:
+
+- `feature/` for product capabilities.
+- `fix/` for defects.
+- `docs/` for documentation-only work.
+- `chore/` for maintenance and tooling.
+- `security/` for hardening work.
+- `codex/` for Codex-authored branches.
+
+Branch names should be lowercase, hyphenated, and scoped to one outcome.
+
+## Commits
+
+Use short imperative commit messages:
+
+```txt
+Add tenant context contracts
+Fix access point seed data
+Document GitHub workflow
+```
+
+Keep commits focused. Avoid mixing functional code, database migrations, and documentation cleanup unless they are part of the same change.
+
+## Pull Requests
+
+Every PR should include:
+
+- Summary of what changed.
+- Why the change is needed.
+- Linked issue when applicable.
+- Validation commands.
+- Migration notes when database changes are included.
+- Environment variable notes when configuration changes.
+- Screenshots for meaningful UI changes.
+
+PRs should avoid unrelated changes. If a follow-up depends on an open PR, open a stacked PR and make the base branch clear.
+
+## Review Rules
+
+- At least one review is expected before merging non-trivial changes.
+- Security-sensitive changes require explicit review of auth, secrets, tenant boundaries, and RLS impact.
+- Database changes require migration review.
+- PRs should not merge with failing CI.
+- The author is responsible for keeping the PR current with its base branch.
+
 ## Validation
 
 Run:
