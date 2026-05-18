@@ -19,6 +19,7 @@ Run before opening a PR:
 ```bash
 pnpm lint
 pnpm typecheck
+pnpm test
 pnpm build
 ```
 

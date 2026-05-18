@@ -64,6 +64,7 @@ Before opening or updating a pull request, run:
 ```bash
 pnpm lint
 pnpm typecheck
+pnpm test
 pnpm build
 ```
 
