@@ -1,12 +1,42 @@
 # AGENTS.md
 
-## Project
+## Project Context
 
-Kynovia Access is a multi-condominium access control SaaS. Keep the architecture modular and tenant-aware from the first implementation.
+Kynovia Access is a SaaS platform for access control in condominiums and gatehouse operations.
+
+Keep the architecture modular, secure, and tenant-aware from the first implementation.
+
+## Stack
+
+- Next.js
+- React
+- Tailwind CSS
+- Supabase
+- PostgreSQL
+- Supabase Edge Functions
+- TypeScript
+
+## Priorities
+
+When trade-offs are necessary, use this order:
+
+1. Security
+2. Stability
+3. Operational simplicity
+4. Clear UX
+5. Scalability
 
 ## Development Rules
 
-- Use TypeScript for all application and package code.
+- Use TypeScript for all application, package, and Edge Function code.
+- Do not create integrations without corresponding environment variables in `.env.example`.
+- Never expose the Supabase service role key or private integration tokens in frontend code.
+- Every tenant-owned table must consider condominium-level tenancy through `condominium_id` or an explicitly documented tenant boundary.
+- Every sensitive table must have Row Level Security enabled.
+- Every database change must be made through a Supabase migration.
+- Every feature must include at least a basic test or a documented validation path when automated tests are not yet available.
+- No feature may depend on a developer's local machine state.
+- Always work through a branch and Pull Request.
 - Keep domain logic out of UI apps when it belongs in shared packages.
 - Prefer small, explicit package APIs exported from `src/index.ts`.
 - Treat Supabase migrations as the source of truth for database structure.
