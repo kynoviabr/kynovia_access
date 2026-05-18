@@ -1,11 +1,5 @@
-import { AppShell } from "@kynovia/ui";
+import { redirect } from "next/navigation";
 
 export default function AdminHome() {
-  return (
-    <AppShell
-      eyebrow="Kynovia Access"
-      title="Admin"
-      description="Base administrativa preparada para fluxos multi-condominio."
-    />
-  );
+  redirect("/dashboard");
 }

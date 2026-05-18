@@ -26,3 +26,8 @@ Security reporting process is defined in `SECURITY.md`.
 - Audit log strategy
 - LGPD and data retention notes
 - Incident response checklist
+
+## Current Documents
+
+- `docs/security/rls-policy-model.md`
+- `docs/security/auth-rbac.md`
