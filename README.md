@@ -10,7 +10,7 @@ Kynovia Access is a SaaS platform for multi-condominium access control operation
 - Supabase for Postgres, Auth, Realtime, Storage, and Edge Functions
 - pnpm workspaces for package management
 - Turborepo for task orchestration
-- GitHub Actions for lint, typecheck, and build validation
+- GitHub Actions for lint, typecheck, test, and build validation
 
 ## Monorepo Layout
 

@@ -32,7 +32,7 @@ supabase/
 
 - Vercel will host the Next.js apps as separate deploy targets.
 - Supabase will own database, auth, realtime, storage, and Edge Functions.
-- GitHub Actions validates pull requests with lint, typecheck, and build jobs.
+- GitHub Actions validates pull requests with lint, typecheck, test, and build jobs.
 
 ## Decision Records
 
