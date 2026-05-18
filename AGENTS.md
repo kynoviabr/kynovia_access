@@ -69,6 +69,28 @@ pnpm build
 
 If dependencies are not installed, run `corepack enable && pnpm install` first.
 
+## Mandatory Pre-PR Validation Cycle
+
+Codex must not open a Pull Request until the validation cycle has been completed and any discovered failures have been corrected.
+
+Required cycle:
+
+1. Implement the change.
+2. Run `pnpm lint`.
+3. Fix lint failures.
+4. Run `pnpm typecheck`.
+5. Fix type errors.
+6. Run `pnpm build`.
+7. Fix build failures.
+8. Run `pnpm test` when the script exists.
+9. Run tests specific to the changed area when available.
+10. Fix bugs found by automated or area-specific tests.
+11. Manually test the affected flow when a user-facing or operational flow changes.
+12. Document known limitations, skipped checks, or unavailable tests in the PR body.
+13. Only then open or update the Pull Request.
+
+If a validation command cannot run because the project lacks the script or required external service, state that explicitly in the PR body and provide the best available substitute validation. Do not ignore failing checks.
+
 ## Environment
 
 Use `.env.example` as the public contract for required variables. Keep local values in `.env.local` or provider-managed secret stores.
