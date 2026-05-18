@@ -15,7 +15,9 @@ body {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
 }
 
@@ -75,6 +77,20 @@ input {
   padding: 0 12px;
 }
 
+select,
+textarea {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #111827;
+  padding: 12px;
+}
+
+textarea {
+  line-height: 1.5;
+  resize: vertical;
+}
+
 button,
 .button-link {
   align-items: center;
@@ -89,6 +105,16 @@ button,
   min-height: 44px;
   padding: 0 16px;
   text-decoration: none;
+}
+
+button.secondary,
+.button-link.secondary {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+button.danger {
+  background: #b91c1c;
 }
 
 .text-link {
@@ -133,4 +159,158 @@ button,
 .profile-list dd {
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+.admin-shell {
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 32px 24px 56px;
+}
+
+.admin-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.admin-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  margin-top: 20px;
+}
+
+.admin-grid.two-columns {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.admin-section h2 {
+  font-size: 1.1rem;
+  margin: 0 0 16px;
+}
+
+.admin-form,
+.filter-form,
+.inline-form {
+  display: grid;
+  gap: 12px;
+}
+
+.filter-form,
+.inline-form {
+  align-items: end;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.toolbar {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  color: #475569;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+td input {
+  width: min(100%, 180px);
+}
+
+.compact {
+  margin-top: 0;
+}
+
+.section-heading {
+  align-items: start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.inline-filter {
+  align-items: end;
+  display: flex;
+  gap: 8px;
+}
+
+.action-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.list-stack {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.list-row {
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.list-row span {
+  color: #64748b;
+  display: block;
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.app-panel form {
+  margin-top: 12px;
+}
+
+@media (max-width: 860px) {
+  .admin-header,
+  .section-heading,
+  .list-row {
+    display: grid;
+  }
+
+  .admin-grid,
+  .admin-grid.two-columns,
+  .filter-form,
+  .inline-form {
+    grid-template-columns: 1fr;
+  }
+
+  .inline-filter {
+    align-items: stretch;
+    display: grid;
+  }
 }
