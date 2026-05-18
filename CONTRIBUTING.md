@@ -32,6 +32,16 @@ Recommended prefixes:
 
 Branch names should be lowercase, hyphenated, and scoped to one outcome.
 
+## Versioning
+
+Use semantic versioning once releases begin:
+
+- `MAJOR` for incompatible platform or API changes.
+- `MINOR` for backward-compatible capabilities.
+- `PATCH` for fixes and safe maintenance updates.
+
+Before formal releases, keep package versions aligned at `0.x` and document release intent in the PR or release issue.
+
 ## Commits
 
 Use short imperative commit messages:

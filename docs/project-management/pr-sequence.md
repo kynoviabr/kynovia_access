@@ -16,6 +16,8 @@ This document proposes an ideal Pull Request sequence for building Kynovia Acces
    - Issue templates
    - Project management docs
    - Contribution rules
+   - Definition of Ready and Definition of Done
+   - Release/deploy checklist
 
 2. Add test framework baseline
    - Unit test runner

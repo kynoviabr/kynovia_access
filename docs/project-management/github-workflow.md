@@ -41,6 +41,8 @@ Stacked PRs are allowed for Codex-driven work when a follow-up depends on an ope
 
 See `docs/project-management/pre-pr-validation.md` for the required validation and correction cycle.
 See `docs/project-management/ci-cd-validation.md` for the baseline GitHub Actions pipeline.
+See `docs/project-management/definition-of-ready-done.md` for readiness and completion standards.
+See `docs/project-management/release-deploy-checklist.md` before enabling or executing deployments.
 
 ## Labels
 
