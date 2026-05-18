@@ -28,13 +28,18 @@ Use branches and PRs for all changes.
 
 1. Start from the correct base branch.
 2. Keep each PR focused on one outcome.
-3. Include validation commands in the PR body.
-4. Include screenshots for meaningful UI changes.
-5. Include migration notes for database changes.
-6. Request review before merge.
-7. Merge only when checks pass and acceptance criteria are satisfied.
+3. Complete the mandatory pre-PR validation cycle.
+4. Fix failures from lint, typecheck, build, tests, and area-specific validation.
+5. Open the Pull Request only after failures are corrected.
+6. Include validation commands in the PR body.
+7. Include screenshots for meaningful UI changes.
+8. Include migration notes for database changes.
+9. Request review before merge.
+10. Merge only when checks pass and acceptance criteria are satisfied.
 
 Stacked PRs are allowed for Codex-driven work when a follow-up depends on an open PR. In that case, make the base branch explicit in the PR description.
+
+See `docs/project-management/pre-pr-validation.md` for the required validation and correction cycle.
 
 ## Labels
 
@@ -94,6 +99,7 @@ Codex work should follow the same governance model:
 - Work on a branch.
 - Keep changes scoped.
 - Update docs alongside implementation.
-- Run available validation commands.
+- Run available validation commands before opening a PR.
+- Fix validation failures before opening or updating a PR.
 - Open or update a PR with a clear summary.
 - Avoid secrets in prompts, commits, logs, issues, and PRs.
