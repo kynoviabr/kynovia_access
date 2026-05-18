@@ -1,11 +1,5 @@
-import { AppShell } from "@kynovia/ui";
+import { redirect } from "next/navigation";
 
 export default function MobileHome() {
-  return (
-    <AppShell
-      eyebrow="Kynovia Access"
-      title="Mobile PWA"
-      description="Base mobile-first preparada para experiencias progressivas."
-    />
-  );
+  redirect("/home");
 }
