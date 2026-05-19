@@ -42,3 +42,5 @@ Architecture Decision Records should be added here as the platform choices becom
 
 - [Access Engine](./access-engine.md): pure TypeScript decision contracts and rule ordering for
   automatic access evaluation.
+- [Gate Integrations](./gate-integrations.md): provider contracts for gate and relay command
+  dispatch.
