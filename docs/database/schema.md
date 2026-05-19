@@ -20,6 +20,8 @@ This document summarizes the foundation schema created for Kynovia Access.
 - `visitors`: visitor records scoped to a condominium.
 - `visitor_vehicles`: visitor vehicle plates.
 - `visitor_unit_visits`: visitor history linked to a condominium unit.
+- `resident_favorite_visitors`: resident-managed frequent visitors for fast invite creation.
+- `resident_access_approvals`: pending visitor approvals sent to residents.
 
 ## Access Control
 
@@ -111,3 +113,15 @@ This supports tenant-wide administration and condominium-level isolation.
 - Open doorman incidents are stored in `gatehouse_occurrences` with severity and status fields.
 - `gatehouse_occurrences` is tenant-aware through `tenant_id` and condominium-aware through
   `condominium_id`.
+
+## Phase 09 Resident PWA Rules
+
+- Resident favorite visitors are stored in `resident_favorite_visitors` and remain scoped to
+  `tenant_id`, `condominium_id`, `resident_id`, and optionally `unit_id`.
+- Favorite visitor rows are archived with `status = 'archived'` instead of being physically deleted.
+- Resident approval requests are stored in `resident_access_approvals` with pending, approved,
+  rejected, or expired status.
+- Gatehouse operators may create approval requests; the linked active resident may approve or reject
+  a pending request before `expires_at`.
+- The PWA reads invite history, validation history, and visitor vehicle access history to present a
+  resident-facing access timeline.

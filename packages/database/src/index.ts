@@ -35,10 +35,14 @@ export {
 } from "./operations";
 export {
   isLikelyBrazilianPlate,
+  isResidentApprovalStatus,
+  isResidentFavoriteStatus,
   isResidentStatus,
   isResidentUnitRelationship,
   normalizeBrazilianPlate,
   normalizePhone,
+  residentApprovalStatuses,
+  residentFavoriteStatuses,
   residentStatuses,
   residentUnitRelationships
 } from "./residents";
