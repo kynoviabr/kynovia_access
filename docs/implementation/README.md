@@ -36,3 +36,10 @@ Suggested implementation phases:
 7. Audit, reporting, and operational hardening
 
 Each phase should be split into small PRs with migrations and package boundaries reviewed carefully.
+
+## Operational Pilot
+
+Phase 16 pilot preparation is documented in `docs/implementation/operational-pilot`.
+
+The pilot package includes a plan, deployment checklist, operational test scripts, acceptance
+matrix, feedback scripts, post-pilot report template, and DEV pilot data guide.
