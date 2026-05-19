@@ -3,11 +3,16 @@ import {
   buildInviteQrPayload,
   createBrowserSupabaseClient,
   hasPlateAuthorization,
+  isAccessDecision,
+  isAccessDirection,
   isAccessPointKind,
+  isGateCommand,
   isInviteStatus,
   isInviteType,
   isInviteValidationResult,
   isLikelyBrazilianPlate,
+  isOccurrenceSeverity,
+  isOccurrenceStatus,
   isResidentStatus,
   isResidentUnitRelationship,
   normalizeBrazilianPlate,
@@ -354,6 +359,88 @@ describe("@kynovia/database", () => {
           },
           Relationships: []
         },
+        access_events: {
+          Row: {
+            id: "access_event_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            access_point_id: "access_point_123",
+            invite_id: "invite_123",
+            resident_id: null,
+            visitor_id: "visitor_123",
+            plate: "ABC1D23",
+            direction: "entry",
+            decision: "manual_review",
+            reason: "Revisao da portaria",
+            decided_by: "profile_123",
+            decided_at: "2026-05-18T00:00:00Z",
+            metadata: {},
+            created_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            direction: "entry",
+            decision: "allow"
+          },
+          Update: {
+            decision: "deny"
+          },
+          Relationships: []
+        },
+        gate_commands: {
+          Row: {
+            id: "gate_command_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            access_point_id: "access_point_123",
+            access_event_id: "access_event_123",
+            command: "open",
+            provider: "mock",
+            status: "pending",
+            requested_by: "profile_123",
+            requested_at: "2026-05-18T00:00:00Z",
+            executed_at: null,
+            metadata: {},
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            access_point_id: "access_point_123",
+            command: "open"
+          },
+          Update: {
+            status: "confirmed"
+          },
+          Relationships: []
+        },
+        gatehouse_occurrences: {
+          Row: {
+            id: "occurrence_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            title: "Entrega sem autorizacao",
+            description: "Visitante aguardando confirmacao.",
+            severity: "medium",
+            status: "open",
+            created_by: "profile_123",
+            resolved_by: null,
+            resolved_at: null,
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            title: "Entrega sem autorizacao"
+          },
+          Update: {
+            status: "resolved"
+          },
+          Relationships: []
+        },
         vehicle_plate_blacklist: {
           Row: {
             id: "blacklist_123",
@@ -450,5 +537,18 @@ describe("@kynovia/database", () => {
     expect(isInviteValidationResult("blacklisted")).toBe(true);
     expect(hasPlateAuthorization("ABC1D23")).toBe(true);
     expect(hasPlateAuthorization("")).toBe(false);
+  });
+
+  it("normalizes gatehouse operation contracts", () => {
+    expect(isAccessDirection("entry")).toBe(true);
+    expect(isAccessDirection("transfer")).toBe(false);
+    expect(isAccessDecision("manual_review")).toBe(true);
+    expect(isAccessDecision("pending")).toBe(false);
+    expect(isGateCommand("open")).toBe(true);
+    expect(isGateCommand("unlock")).toBe(false);
+    expect(isOccurrenceSeverity("critical")).toBe(true);
+    expect(isOccurrenceSeverity("urgent")).toBe(false);
+    expect(isOccurrenceStatus("open")).toBe(true);
+    expect(isOccurrenceStatus("archived")).toBe(false);
   });
 });

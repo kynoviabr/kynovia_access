@@ -47,6 +47,9 @@ Condominium memberships support:
   condominium operators.
 - Visitor vehicle access stays can be read by users with condominium access and inserted/updated
   only by condominium operators.
+- Access events can be updated by condominium operators to resolve manual-review decisions.
+- Gatehouse occurrences can be read by users with condominium access and inserted/updated only by
+  condominium operators.
 - Audit logs are readable by same-tenant users and immutable after insert.
 
 ## Service Role Boundary
