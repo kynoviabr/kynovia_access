@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  assessOperationalRisk,
   evaluateAccess,
   isAccessDecisionReason,
   isAccessDecisionResult,
   isAccessDirection,
+  isOperationalRiskLevel,
+  isOperationalRiskReason,
   isAccessSubjectType,
   type AccessPolicyContext
 } from "./index";
@@ -25,6 +28,8 @@ describe("@kynovia/access-engine", () => {
     expect(isAccessDirection("entry")).toBe(true);
     expect(isAccessSubjectType("resident_vehicle")).toBe(true);
     expect(isAccessDecisionReason("valid_invite_allowed")).toBe(true);
+    expect(isOperationalRiskLevel("critical")).toBe(true);
+    expect(isOperationalRiskReason("possible_fraud")).toBe(true);
   });
 
   it("allows an active resident vehicle", () => {
@@ -198,5 +203,26 @@ describe("@kynovia/access-engine", () => {
 
     expect(result.result).toBe("deny");
     expect(result.matchedRule).toBe("custom-deny");
+  });
+
+  it("assesses operational risk from denied attempts, hardware failures, and capacity pressure", () => {
+    const result = assessOperationalRisk({
+      tenantId: "tenant_123",
+      condominiumId: "condominium_123",
+      evaluatedAt: "2026-05-18T12:00:00.000Z",
+      deniedAttempts24h: 5,
+      manualReviews24h: 6,
+      failedGateCommands1h: 1,
+      blacklistHits24h: 1,
+      lowConfidenceReads24h: 3,
+      activeVisitorVehicles: 9,
+      visitorParkingCapacity: 10
+    });
+
+    expect(result.level).toBe("critical");
+    expect(result.reasons).toContain("possible_fraud");
+    expect(result.reasons).toContain("hardware_failures");
+    expect(result.recommendedAction).toBe("notify_admin");
+    expect(result.metadata.parkingUsagePercent).toBe(90);
   });
 });

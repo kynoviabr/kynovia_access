@@ -46,6 +46,16 @@ This document summarizes the foundation schema created for Kynovia Access.
 
 `audit_logs` blocks update and delete operations with a database trigger.
 
+## Operational AI
+
+- `operational_ai_analyses`: AI-assisted event classifications, summaries, confidence, risk scores,
+  recommendations, and source event references.
+- `operational_ai_alerts`: open, acknowledged, resolved, or dismissed alerts generated from
+  analysis results.
+- `doorman_assistant_sessions`: tenant and condominium-scoped assistant conversations for portaria
+  support.
+- `doorman_assistant_messages`: operator, assistant, and system messages with safety flags.
+
 ## Multi-Tenant Rule
 
 Every operational record includes:
@@ -189,3 +199,19 @@ This supports tenant-wide administration and condominium-level isolation.
 - Audit metadata must not store service role keys, provider secrets, raw biometric material, or
   unnecessary personal data.
 - Access reports should preserve tenant, condominium, date-range, and RLS boundaries.
+
+## Phase 15 Operational AI Rules
+
+- Operational AI is advisory. It must not directly allow access, deny access, or dispatch physical
+  gate commands.
+- AI analyses are stored in `operational_ai_analyses` with event source, risk level, score,
+  confidence, summary, recommendations, signals, and metadata.
+- AI alerts are stored in `operational_ai_alerts` and require operator/admin acknowledgement or
+  resolution.
+- Doorman assistant sessions and messages are scoped by `tenant_id` and `condominium_id`.
+- Provider configuration must stay server-side through `AI_PROVIDER`, `AI_MODEL`, `OPENAI_API_KEY`,
+  and related environment variables.
+- Prompt inputs must avoid service role keys, provider tokens, raw biometric material, and
+  unnecessary personal data.
+- `@kynovia/access-engine` provides deterministic risk scoring; `@kynovia/integrations` provides
+  provider contracts and audit metadata for future AI calls.

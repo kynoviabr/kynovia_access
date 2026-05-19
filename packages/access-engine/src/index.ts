@@ -16,11 +16,22 @@ export const accessDecisionReasons = [
   "missing_context_review",
   "unknown_subject_review"
 ] as const;
+export const operationalRiskLevels = ["low", "medium", "high", "critical"] as const;
+export const operationalRiskReasons = [
+  "normal_activity",
+  "repeated_denials",
+  "manual_review_spike",
+  "hardware_failures",
+  "possible_fraud",
+  "capacity_pressure"
+] as const;
 
 export type AccessDecisionResult = (typeof accessDecisionResults)[number];
 export type AccessSubjectType = (typeof accessSubjectTypes)[number];
 export type AccessDirection = (typeof accessDirections)[number];
 export type AccessDecisionReason = (typeof accessDecisionReasons)[number];
+export type OperationalRiskLevel = (typeof operationalRiskLevels)[number];
+export type OperationalRiskReason = (typeof operationalRiskReasons)[number];
 
 export type AccessPolicyContext = {
   tenantId: string;
@@ -69,6 +80,28 @@ export type AccessRule = {
   evaluate: (context: AccessPolicyContext) => AccessDecision | null;
 };
 
+export type OperationalRiskContext = {
+  tenantId: string;
+  condominiumId: string;
+  evaluatedAt: string;
+  deniedAttempts24h?: number;
+  manualReviews24h?: number;
+  failedGateCommands1h?: number;
+  blacklistHits24h?: number;
+  activeVisitorVehicles?: number;
+  visitorParkingCapacity?: number;
+  lowConfidenceReads24h?: number;
+};
+
+export type OperationalRiskAssessment = {
+  level: OperationalRiskLevel;
+  score: number;
+  reasons: OperationalRiskReason[];
+  summary: string;
+  recommendedAction: "monitor" | "manual_review" | "notify_admin" | "create_occurrence";
+  metadata: Record<string, string | number | boolean | null>;
+};
+
 export function isAccessDecisionResult(value: string): value is AccessDecisionResult {
   return accessDecisionResults.includes(value as AccessDecisionResult);
 }
@@ -83,6 +116,14 @@ export function isAccessDirection(value: string): value is AccessDirection {
 
 export function isAccessDecisionReason(value: string): value is AccessDecisionReason {
   return accessDecisionReasons.includes(value as AccessDecisionReason);
+}
+
+export function isOperationalRiskLevel(value: string): value is OperationalRiskLevel {
+  return operationalRiskLevels.includes(value as OperationalRiskLevel);
+}
+
+export function isOperationalRiskReason(value: string): value is OperationalRiskReason {
+  return operationalRiskReasons.includes(value as OperationalRiskReason);
 }
 
 function decision({
@@ -124,6 +165,95 @@ function isInviteWithinWindow(invite: NonNullable<AccessPolicyContext["invite"]>
   }
 
   return "valid";
+}
+
+function riskLevel(score: number): OperationalRiskLevel {
+  if (score >= 90) {
+    return "critical";
+  }
+
+  if (score >= 70) {
+    return "high";
+  }
+
+  if (score >= 40) {
+    return "medium";
+  }
+
+  return "low";
+}
+
+function clampRiskScore(score: number) {
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+export function assessOperationalRisk(context: OperationalRiskContext): OperationalRiskAssessment {
+  const deniedAttempts = context.deniedAttempts24h ?? 0;
+  const manualReviews = context.manualReviews24h ?? 0;
+  const failedCommands = context.failedGateCommands1h ?? 0;
+  const blacklistHits = context.blacklistHits24h ?? 0;
+  const lowConfidenceReads = context.lowConfidenceReads24h ?? 0;
+  const capacity = context.visitorParkingCapacity ?? 0;
+  const activeVehicles = context.activeVisitorVehicles ?? 0;
+  const parkingUsagePercent = capacity > 0 ? Math.round((activeVehicles / capacity) * 100) : 0;
+  const reasons: OperationalRiskReason[] = [];
+
+  if (deniedAttempts >= 3) {
+    reasons.push("repeated_denials");
+  }
+
+  if (manualReviews >= 5 || lowConfidenceReads >= 3) {
+    reasons.push("manual_review_spike");
+  }
+
+  if (failedCommands > 0) {
+    reasons.push("hardware_failures");
+  }
+
+  if (blacklistHits > 0 || deniedAttempts >= 5) {
+    reasons.push("possible_fraud");
+  }
+
+  if (parkingUsagePercent >= 90) {
+    reasons.push("capacity_pressure");
+  }
+
+  if (reasons.length === 0) {
+    reasons.push("normal_activity");
+  }
+
+  const score = clampRiskScore(
+    deniedAttempts * 10
+    + manualReviews * 4
+    + failedCommands * 18
+    + blacklistHits * 25
+    + lowConfidenceReads * 6
+    + (parkingUsagePercent >= 90 ? 12 : 0)
+  );
+  const level = riskLevel(score);
+  const recommendedAction = level === "critical"
+    ? "notify_admin"
+    : level === "high"
+      ? "create_occurrence"
+      : level === "medium"
+        ? "manual_review"
+        : "monitor";
+
+  return {
+    level,
+    score,
+    reasons,
+    summary: `Risco operacional ${level} com score ${score}.`,
+    recommendedAction,
+    metadata: {
+      deniedAttempts24h: deniedAttempts,
+      manualReviews24h: manualReviews,
+      failedGateCommands1h: failedCommands,
+      blacklistHits24h: blacklistHits,
+      lowConfidenceReads24h: lowConfidenceReads,
+      parkingUsagePercent
+    }
+  };
 }
 
 export const defaultAccessRules: AccessRule[] = [
