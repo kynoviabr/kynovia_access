@@ -11,6 +11,7 @@ The foundation migration defines stable helper functions:
 - `has_tenant_access(target_tenant_id)`
 - `has_condominium_access(target_condominium_id)`
 - `can_operate_condominium(target_condominium_id)`
+- `is_current_resident_for_unit(target_resident_id, target_unit_id, target_condominium_id)`
 
 These helpers use `auth.uid()` and `profiles` to resolve the current authenticated user's tenant and role.
 
@@ -38,6 +39,10 @@ Condominium memberships support:
 - Condominium-scoped records require condominium access.
 - Operational writes require condominium operation rights.
 - Access events can be inserted by operators.
+- Residents can create and cancel their own digital invites only when their authenticated profile is
+  linked to an active resident and to the selected unit.
+- Gatehouse invite validation records can be inserted by operators and read by users with
+  condominium access.
 - Audit logs are readable by same-tenant users and immutable after insert.
 
 ## Service Role Boundary

@@ -1,4 +1,5 @@
 import { signOutAction } from "../actions";
+import Link from "next/link";
 import { requireAuthorizedProfile } from "../../lib/auth/session";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +27,11 @@ export default async function HomePage() {
             <dd>{profile.tenantId}</dd>
           </div>
         </dl>
+        <div className="quick-actions">
+          <Link className="button-link" href="/home/invites">
+            Convites digitais
+          </Link>
+        </div>
         <form action={signOutAction}>
           <button type="submit">Sair</button>
         </form>

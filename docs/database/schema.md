@@ -13,7 +13,8 @@ This document summarizes the foundation schema created for Kynovia Access.
 ## Property Operations
 
 - `units`: condominium units.
-- `residents`: residents scoped to a condominium.
+- `residents`: residents scoped to a condominium, optionally linked to an authenticated profile for
+  resident self-service.
 - `resident_units`: resident-to-unit relationships.
 - `resident_vehicles`: resident vehicles, unique by condominium and plate.
 - `visitors`: visitor records scoped to a condominium.
@@ -23,7 +24,9 @@ This document summarizes the foundation schema created for Kynovia Access.
 ## Access Control
 
 - `access_points`: gatehouse, gate, pedestrian entry, or future physical access points.
-- `access_invites`: visitor authorization window, optional plate, usage limits, and status.
+- `access_invites`: visitor authorization window, optional plate, usage limits, QR token hash,
+  recurrence metadata, cancellation metadata, and status.
+- `access_invite_validations`: history of gatehouse QR validations and their outcomes.
 - `access_events`: access decisions such as allow, deny, or manual review.
 - `gate_commands`: physical command queue for gates and relays.
 
@@ -63,3 +66,18 @@ This supports tenant-wide administration and condominium-level isolation.
 - Visitor history by unit is stored in `visitor_unit_visits`.
 - Bulk resident CSV import is planned separately and documented in
   `docs/implementation/resident-csv-import.md`.
+
+## Phase 06 Digital Invite And QR Rules
+
+- Digital invites are stored in `access_invites` and remain tenant-aware through `tenant_id`,
+  `condominium_id`, `resident_id`, and `unit_id`.
+- Resident self-service requires an active `residents.profile_id` link and an existing
+  `resident_units` relationship for the selected unit.
+- QR codes store only `qr_token_hash` in the database. The raw token is returned to the resident once
+  when the invite is created.
+- Invite validity is controlled by `starts_at`, `expires_at`, `qr_token_expires_at`, `max_uses`,
+  `use_count`, and `status`.
+- Recurrent invites are represented by `invite_type = 'recurring'` and a descriptive
+  `recurrence_rule`; scheduling automation is intentionally left for a later operational story.
+- Gatehouse validations are recorded in `access_invite_validations` with a normalized result such as
+  `allowed`, `expired`, `cancelled`, `not_started`, `usage_limit_reached`, or `invalid`.

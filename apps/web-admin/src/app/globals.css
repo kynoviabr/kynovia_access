@@ -298,6 +298,11 @@ td input {
   margin-top: 4px;
 }
 
+.list-row small {
+  color: #64748b;
+  overflow-wrap: anywhere;
+}
+
 .management-record {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
