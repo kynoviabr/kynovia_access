@@ -1,16 +1,27 @@
 import { describe, expect, it } from "vitest";
 import {
   buildGateCommandAuditMetadata,
+  buildLprAccessSubject,
+  buildLprEventAuditMetadata,
   createHttpRelayProvider,
+  createMockLprProvider,
   createMockGateProvider,
+  createPlateRecognizerProvider,
   isGateCommandFailureCode,
   isGateCommandName,
   isGateCommandStatus,
   isIntegrationProvider,
+  isBrazilianPlateFormat,
+  isLprConfidenceLevel,
+  isLprEventType,
+  isLprFailureCode,
+  isLprProvider,
+  normalizeBrazilianPlate,
   type GateCommandRequest,
   type HttpClient,
   type IntegrationEvent,
-  type IntegrationProvider
+  type IntegrationProvider,
+  type LprWebhookRequest
 } from "./index";
 
 const command = {
@@ -25,6 +36,27 @@ const command = {
   accessEventId: "event_123"
 } satisfies GateCommandRequest;
 
+const lprWebhook = {
+  id: "lpr_event_123",
+  tenantId: "tenant_123",
+  condominiumId: "condominium_123",
+  accessPointId: "access_point_123",
+  provider: "plate_recognizer",
+  occurredAt: "2026-05-18T00:00:00.000Z",
+  direction: "entry",
+  payload: {
+    results: [
+      {
+        plate: "abc-1d23",
+        score: 0.96,
+        region: {
+          code: "br"
+        }
+      }
+    ]
+  }
+} satisfies LprWebhookRequest;
+
 describe("@kynovia/integrations", () => {
   it("supports typed integration providers and events", () => {
     const provider = "webhook" satisfies IntegrationProvider;
@@ -38,6 +70,7 @@ describe("@kynovia/integrations", () => {
     expect(provider).toBe("webhook");
     expect(event.provider).toBe("email");
     expect(isIntegrationProvider("http_relay")).toBe(true);
+    expect(isIntegrationProvider("plate_recognizer")).toBe(true);
   });
 
   it("validates gate command contracts", () => {
@@ -137,6 +170,82 @@ describe("@kynovia/integrations", () => {
       provider: "mock_gate",
       status: "failed",
       errorCode: "provider_error"
+    });
+  });
+
+  it("normalizes and validates Brazilian license plates", () => {
+    expect(normalizeBrazilianPlate("abc-1d23")).toBe("ABC1D23");
+    expect(normalizeBrazilianPlate(" Ábc 1234 ")).toBe("ABC1234");
+    expect(isBrazilianPlateFormat("ABC-1234")).toBe(true);
+    expect(isBrazilianPlateFormat("ABC1D23")).toBe(true);
+    expect(isBrazilianPlateFormat("AB-123")).toBe(false);
+  });
+
+  it("validates LPR contracts", () => {
+    expect(isLprProvider("mock_lpr")).toBe(true);
+    expect(isLprProvider("camera_vendor")).toBe(false);
+    expect(isLprEventType("plate_detected")).toBe(true);
+    expect(isLprConfidenceLevel("manual_review")).toBe(true);
+    expect(isLprFailureCode("no_plate_detected")).toBe(true);
+  });
+
+  it("parses a deterministic mock LPR reading", async () => {
+    const result = await createMockLprProvider({ plate: "abc-1d23" }).parseWebhook({
+      ...lprWebhook,
+      provider: "mock_lpr",
+      payload: { fixture: true }
+    });
+
+    expect(result.eventType).toBe("plate_detected");
+    if (result.eventType !== "provider_error") {
+      expect(result.candidate?.normalizedPlate).toBe("ABC1D23");
+      expect(result.requiresManualReview).toBe(false);
+    }
+  });
+
+  it("flags low-confidence LPR readings for manual review", async () => {
+    const result = await createMockLprProvider({ confidence: 0.42, minConfidence: 0.85 }).parseWebhook({
+      ...lprWebhook,
+      provider: "mock_lpr",
+      payload: { fixture: true }
+    });
+
+    expect(result.eventType).toBe("low_confidence_review");
+    if (result.eventType !== "provider_error") {
+      expect(result.confidenceLevel).toBe("manual_review");
+      expect(result.requiresManualReview).toBe(true);
+    }
+  });
+
+  it("parses Plate Recognizer payloads and builds access subjects", async () => {
+    const result = await createPlateRecognizerProvider({ minConfidence: 0.9 }).parseWebhook(lprWebhook);
+    const subject = buildLprAccessSubject(result);
+
+    expect(result.eventType).toBe("plate_detected");
+    expect(subject).toMatchObject({
+      type: "visitor_vehicle",
+      plate: "ABC1D23",
+      confidence: 0.96,
+      requiresManualReview: false,
+      provider: "plate_recognizer",
+      readingId: "lpr_event_123"
+    });
+  });
+
+  it("maps invalid Plate Recognizer payloads to auditable failures", async () => {
+    const result = await createPlateRecognizerProvider().parseWebhook({
+      ...lprWebhook,
+      payload: { results: [] }
+    });
+    const subject = buildLprAccessSubject(result);
+    const audit = buildLprEventAuditMetadata(result);
+
+    expect(result.eventType).toBe("provider_error");
+    expect(subject.requiresManualReview).toBe(true);
+    expect(audit).toMatchObject({
+      provider: "plate_recognizer",
+      eventType: "provider_error",
+      errorCode: "no_plate_detected"
     });
   });
 });

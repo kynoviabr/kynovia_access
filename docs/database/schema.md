@@ -136,3 +136,16 @@ This supports tenant-wide administration and condominium-level isolation.
 - Provider results should update `gate_commands.status`, `executed_at`, and `metadata` with audit
   details returned by `@kynovia/integrations`.
 - Hardware credentials and relay URLs must stay in server-side environment variables.
+
+## Phase 12 LPR Rules
+
+- License Plate Recognition events should be persisted as operational access events, not as direct
+  access decisions.
+- Store normalized plates in uppercase without separators.
+- Keep the provider name, access point, confidence score, and manual review flag.
+- Low-confidence readings must create an operator review path instead of a gate command.
+- `@kynovia/integrations` parses webhook payloads and builds an access subject.
+- `@kynovia/access-engine` remains responsible for the final allow, deny, or manual review decision.
+- Plate Recognizer credentials and webhook verification secrets must live in server-side
+  environment variables or Supabase Edge Function secrets.
+- Raw provider payload retention must follow the audit and LGPD retention policy.
