@@ -1,10 +1,20 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildAuditExportFilename,
+  buildAuditLogAction,
   buildInviteQrPayload,
+  calculateRetentionUntil,
   createBrowserSupabaseClient,
   hasPlateAuthorization,
   isAccessDecision,
   isAccessDirection,
+  isAuditEventType,
+  isAuditExportFormat,
+  isAuditExportStatus,
+  isAuditRedactionStatus,
+  isAuditRetentionPolicy,
+  isAuditSeverity,
+  isAuditSource,
   isAccessPointKind,
   isGateCommand,
   isInviteStatus,
@@ -18,6 +28,7 @@ import {
   isResidentStatus,
   isResidentUnitRelationship,
   normalizeBrazilianPlate,
+  normalizeAuditDateRange,
   normalizeInviteUsageLimit,
   normalizeNullableText,
   normalizePhone,
@@ -443,6 +454,88 @@ describe("@kynovia/database", () => {
           },
           Relationships: []
         },
+        audit_logs: {
+          Row: {
+            id: "audit_log_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            actor_profile_id: "profile_123",
+            actor_user_id: "profile_123",
+            action: "gate_command.insert",
+            entity_table: "gate_commands",
+            entity_id: "gate_command_123",
+            event_type: "physical_command",
+            source: "database_trigger",
+            severity: "info",
+            occurred_at: "2026-05-18T00:00:00Z",
+            correlation_id: "access_event_123",
+            retention_policy: "operational",
+            retention_until: "2027-05-18",
+            redaction_status: "none",
+            before_state: null,
+            after_state: {},
+            metadata: {},
+            created_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            action: "access_event.insert",
+            entity_table: "access_events"
+          },
+          Update: undefined as never,
+          Relationships: []
+        },
+        audit_retention_policies: {
+          Row: {
+            id: "audit_policy_123",
+            tenant_id: "tenant_123",
+            condominium_id: null,
+            event_type: "operational_event",
+            retention_days: 365,
+            legal_basis: "legitimate_interest",
+            status: "active",
+            notes: null,
+            created_by: "profile_123",
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            event_type: "operational_event",
+            retention_days: 365
+          },
+          Update: {
+            retention_days: 730
+          },
+          Relationships: []
+        },
+        audit_log_export_requests: {
+          Row: {
+            id: "audit_export_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            requested_by: "profile_123",
+            status: "pending",
+            format: "csv",
+            filters: {},
+            file_path: null,
+            exported_at: null,
+            expires_at: null,
+            failure_reason: null,
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            requested_by: "profile_123"
+          },
+          Update: {
+            status: "completed",
+            file_path: "private://audit/export.csv"
+          },
+          Relationships: []
+        },
         vehicle_plate_blacklist: {
           Row: {
             id: "blacklist_123",
@@ -551,7 +644,31 @@ describe("@kynovia/database", () => {
           Relationships: []
         }
       },
-      Views: {},
+      Views: {
+        audit_log_export_view: {
+          Row: {
+            id: "audit_log_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            actor_profile_id: "profile_123",
+            actor_user_id: "profile_123",
+            event_type: "physical_command",
+            action: "gate_command.insert",
+            entity_table: "gate_commands",
+            entity_id: "gate_command_123",
+            source: "database_trigger",
+            severity: "info",
+            occurred_at: "2026-05-18T00:00:00Z",
+            correlation_id: "access_event_123",
+            retention_policy: "operational",
+            retention_until: "2027-05-18",
+            redaction_status: "none",
+            metadata: {},
+            created_at: "2026-05-18T00:00:00Z"
+          },
+          Relationships: []
+        }
+      },
       Functions: {},
       Enums: {},
       CompositeTypes: {}
@@ -612,5 +729,32 @@ describe("@kynovia/database", () => {
     expect(isOccurrenceSeverity("urgent")).toBe(false);
     expect(isOccurrenceStatus("open")).toBe(true);
     expect(isOccurrenceStatus("archived")).toBe(false);
+  });
+
+  it("normalizes audit and compliance contracts", () => {
+    expect(isAuditEventType("permission_change")).toBe(true);
+    expect(isAuditEventType("feature_flag")).toBe(false);
+    expect(isAuditSource("database_trigger")).toBe(true);
+    expect(isAuditSeverity("critical")).toBe(true);
+    expect(isAuditRetentionPolicy("lgpd_request")).toBe(true);
+    expect(isAuditRedactionStatus("redacted")).toBe(true);
+    expect(isAuditExportStatus("completed")).toBe(true);
+    expect(isAuditExportFormat("csv")).toBe(true);
+    expect(buildAuditLogAction("Gate Command", "Manual Open")).toBe("gate_command.manual_open");
+    expect(normalizeAuditDateRange("2026-05-18", "2026-05-19")).toEqual({
+      from: "2026-05-18T00:00:00.000Z",
+      to: "2026-05-19T00:00:00.000Z"
+    });
+    expect(normalizeAuditDateRange("2026-05-20", "2026-05-19")).toBeNull();
+    expect(calculateRetentionUntil("2026-05-18T00:00:00.000Z", 365)).toBe("2027-05-18");
+    expect(
+      buildAuditExportFilename({
+        tenantId: "Tenant Demo",
+        condominiumId: "Condomínio A",
+        from: "2026-05-18",
+        to: "2026-05-19",
+        format: "csv"
+      })
+    ).toBe("audit_tenant_demo_condominio_a_2026-05-18_2026-05-19.csv");
   });
 });

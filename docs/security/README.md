@@ -12,22 +12,15 @@ Kynovia Access handles sensitive operational data for residential access control
 - Keep service role keys server-only.
 - Never expose private Supabase keys to browser apps.
 - Use least-privilege integration tokens.
-- Preserve access decision and operator action audit trails when workflows are implemented.
+- Preserve access decision, physical command, permission change, and operator action audit trails.
 - Treat authentication, authorization, and auditability as separate concerns.
 
 ## Responsible Disclosure
 
 Security reporting process is defined in `SECURITY.md`.
 
-## Future Documents
-
-- RLS policy model
-- Auth roles and permissions
-- Audit log strategy
-- LGPD and data retention notes
-- Incident response checklist
-
 ## Current Documents
 
 - `docs/security/rls-policy-model.md`
 - `docs/security/auth-rbac.md`
+- `docs/security/audit-compliance.md`
