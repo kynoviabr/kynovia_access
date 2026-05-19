@@ -8,7 +8,9 @@ export const integrationProviders = [
   "mock_lpr",
   "plate_recognizer",
   "mock_facial",
-  "facial_provider"
+  "facial_provider",
+  "mock_ai",
+  "openai_responses"
 ] as const;
 export const gateCommandNames = ["open", "close", "hold_open", "lock"] as const;
 export const gateCommandStatuses = ["pending", "sent", "confirmed", "failed", "cancelled"] as const;
@@ -44,6 +46,24 @@ export const facialFailureCodes = [
   "liveness_failed",
   "blacklisted_face"
 ] as const;
+export const operationalAiProviders = ["mock_ai", "openai_responses"] as const;
+export const operationalAiEventCategories = [
+  "normal_operation",
+  "visitor_exception",
+  "denied_access",
+  "hardware_failure",
+  "possible_fraud",
+  "security_risk"
+] as const;
+export const operationalAiAlertTypes = [
+  "operator_attention",
+  "repeated_denials",
+  "capacity_pressure",
+  "possible_fraud",
+  "hardware_attention"
+] as const;
+export const operationalAiRiskLevels = ["low", "medium", "high", "critical"] as const;
+export const operationalAiFailureCodes = ["missing_configuration", "invalid_payload", "provider_error"] as const;
 
 export type IntegrationProvider = (typeof integrationProviders)[number];
 export type GateCommandName = (typeof gateCommandNames)[number];
@@ -57,6 +77,11 @@ export type FacialProviderName = (typeof facialProviders)[number];
 export type FacialConsentStatus = (typeof facialConsentStatuses)[number];
 export type FacialValidationResult = (typeof facialValidationResults)[number];
 export type FacialFailureCode = (typeof facialFailureCodes)[number];
+export type OperationalAiProviderName = (typeof operationalAiProviders)[number];
+export type OperationalAiEventCategory = (typeof operationalAiEventCategories)[number];
+export type OperationalAiAlertType = (typeof operationalAiAlertTypes)[number];
+export type OperationalAiRiskLevel = (typeof operationalAiRiskLevels)[number];
+export type OperationalAiFailureCode = (typeof operationalAiFailureCodes)[number];
 
 export type IntegrationEvent = {
   id: string;
@@ -258,6 +283,69 @@ export type FacialValidationOutcome =
   | FacialValidationReview
   | FacialValidationDenied;
 
+export type OperationalAiSignal = {
+  name: string;
+  value: string | number | boolean | null;
+  weight?: number;
+};
+
+export type OperationalAiAnalysisRequest = {
+  id: string;
+  tenantId: string;
+  condominiumId: string;
+  provider: OperationalAiProviderName;
+  occurredAt: string;
+  eventSource: "access_event" | "gate_command" | "occurrence" | "lpr" | "facial" | "manual_note";
+  eventId?: string | null;
+  title?: string | null;
+  description?: string | null;
+  signals?: OperationalAiSignal[];
+  context?: Record<string, string | number | boolean | null>;
+};
+
+export type OperationalAiRecommendation = {
+  action: "monitor" | "manual_review" | "notify_admin" | "create_occurrence" | "block_subject";
+  label: string;
+  priority: OperationalAiRiskLevel;
+};
+
+export type OperationalAiAnalysisSuccess = {
+  status: "completed";
+  provider: OperationalAiProviderName;
+  analyzedAt: string;
+  category: OperationalAiEventCategory;
+  riskLevel: OperationalAiRiskLevel;
+  riskScore: number;
+  confidence: number;
+  summary: string;
+  alertType?: OperationalAiAlertType | null;
+  recommendations: OperationalAiRecommendation[];
+  metadata?: Record<string, string | number | boolean | null>;
+  rawResponse?: unknown;
+};
+
+export type OperationalAiAnalysisFailure = {
+  status: "failed";
+  provider: OperationalAiProviderName;
+  failedAt: string;
+  errorCode: OperationalAiFailureCode;
+  message: string;
+  rawResponse?: unknown;
+};
+
+export type OperationalAiAnalysisResult = OperationalAiAnalysisSuccess | OperationalAiAnalysisFailure;
+
+export type OperationalAiProviderConfig = {
+  apiKey?: string | null;
+  model?: string | null;
+  minConfidence?: number;
+};
+
+export type OperationalAiProvider = {
+  readonly provider: OperationalAiProviderName;
+  analyze: (request: OperationalAiAnalysisRequest) => Promise<OperationalAiAnalysisResult>;
+};
+
 export type FacialProvider = {
   readonly provider: FacialProviderName;
   enroll: (request: FacialEnrollmentRequest) => Promise<FacialEnrollmentResult>;
@@ -406,6 +494,26 @@ export function isFacialValidationResult(value: string): value is FacialValidati
 
 export function isFacialFailureCode(value: string): value is FacialFailureCode {
   return facialFailureCodes.includes(value as FacialFailureCode);
+}
+
+export function isOperationalAiProvider(value: string): value is OperationalAiProviderName {
+  return operationalAiProviders.includes(value as OperationalAiProviderName);
+}
+
+export function isOperationalAiEventCategory(value: string): value is OperationalAiEventCategory {
+  return operationalAiEventCategories.includes(value as OperationalAiEventCategory);
+}
+
+export function isOperationalAiAlertType(value: string): value is OperationalAiAlertType {
+  return operationalAiAlertTypes.includes(value as OperationalAiAlertType);
+}
+
+export function isOperationalAiRiskLevel(value: string): value is OperationalAiRiskLevel {
+  return operationalAiRiskLevels.includes(value as OperationalAiRiskLevel);
+}
+
+export function isOperationalAiFailureCode(value: string): value is OperationalAiFailureCode {
+  return operationalAiFailureCodes.includes(value as OperationalAiFailureCode);
 }
 
 export function normalizeBrazilianPlate(value: string) {
@@ -670,6 +778,51 @@ function providerSubjectFromFacialPayload(payload: FacialProviderPayload) {
 
 function subjectFromFacialPayload(payload: FacialProviderPayload) {
   return typeof payload.match?.subjectId === "string" ? payload.match.subjectId : null;
+}
+
+function operationalAiFailure(
+  request: OperationalAiAnalysisRequest,
+  errorCode: OperationalAiFailureCode,
+  message: string,
+  rawResponse?: unknown
+): OperationalAiAnalysisFailure {
+  return {
+    status: "failed",
+    provider: request.provider,
+    failedAt: nowIso(),
+    errorCode,
+    message,
+    rawResponse
+  };
+}
+
+function signalValue(request: OperationalAiAnalysisRequest, name: string) {
+  return request.signals?.find((signal) => signal.name === name)?.value ?? null;
+}
+
+function signalNumber(request: OperationalAiAnalysisRequest, name: string) {
+  const value = signalValue(request, name);
+  return typeof value === "number" ? value : 0;
+}
+
+function clampScore(value: number) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function riskLevelFromScore(score: number): OperationalAiRiskLevel {
+  if (score >= 90) {
+    return "critical";
+  }
+
+  if (score >= 70) {
+    return "high";
+  }
+
+  if (score >= 40) {
+    return "medium";
+  }
+
+  return "low";
 }
 
 export function createMockGateProvider({
@@ -1141,5 +1294,151 @@ export function buildFacialValidationAuditMetadata(outcome: FacialValidationOutc
     ...(outcome.result === "matched"
       ? { consentId: outcome.consentId }
       : { reason: outcome.reason, message: outcome.message })
+  };
+}
+
+export function createMockOperationalAiProvider({
+  confidence = 0.92,
+  minConfidence = 0.7
+}: {
+  confidence?: number;
+  minConfidence?: number;
+} = {}): OperationalAiProvider {
+  return {
+    provider: "mock_ai",
+    async analyze(request) {
+      if (!request.id || !request.tenantId || !request.condominiumId || !request.occurredAt) {
+        return operationalAiFailure(request, "invalid_payload", "Analise operacional sem contexto obrigatorio.");
+      }
+
+      const deniedAttempts = signalNumber(request, "denied_attempts_24h");
+      const manualReviews = signalNumber(request, "manual_reviews_24h");
+      const failedCommands = signalNumber(request, "failed_gate_commands_1h");
+      const blacklistHit = signalValue(request, "blacklist_hit") === true;
+      const lowConfidenceBiometric = signalValue(request, "low_confidence_biometric") === true;
+      const parkingPressure = signalNumber(request, "visitor_parking_usage_percent");
+      const riskScore = clampScore(
+        deniedAttempts * 12
+        + manualReviews * 5
+        + failedCommands * 15
+        + (blacklistHit ? 35 : 0)
+        + (lowConfidenceBiometric ? 20 : 0)
+        + (parkingPressure >= 90 ? 15 : 0)
+      );
+      const riskLevel = riskLevelFromScore(riskScore);
+      const category: OperationalAiEventCategory = blacklistHit || deniedAttempts >= 3
+        ? "possible_fraud"
+        : failedCommands > 0
+          ? "hardware_failure"
+          : riskScore >= 40
+            ? "visitor_exception"
+            : "normal_operation";
+      const alertType: OperationalAiAlertType | null = category === "possible_fraud"
+        ? "possible_fraud"
+        : failedCommands > 0
+          ? "hardware_attention"
+          : parkingPressure >= 90
+            ? "capacity_pressure"
+            : riskScore >= 40
+              ? "operator_attention"
+              : null;
+      const recommendations: OperationalAiRecommendation[] = [
+        {
+          action: riskScore >= 70 ? "create_occurrence" : "monitor",
+          label: riskScore >= 70 ? "Registrar ocorrencia para acompanhamento." : "Manter monitoramento operacional.",
+          priority: riskLevel
+        }
+      ];
+
+      if (blacklistHit || deniedAttempts >= 3) {
+        recommendations.push({
+          action: "manual_review",
+          label: "Revisar tentativas negadas e sujeito associado antes de liberar acesso.",
+          priority: riskLevel
+        });
+      }
+
+      return {
+        status: "completed",
+        provider: "mock_ai",
+        analyzedAt: nowIso(),
+        category,
+        riskLevel,
+        riskScore,
+        confidence: Math.max(confidence, minConfidence),
+        summary: `${request.title ?? "Evento operacional"} classificado como ${category} com risco ${riskLevel}.`,
+        alertType,
+        recommendations,
+        metadata: {
+          eventSource: request.eventSource,
+          eventId: request.eventId ?? null,
+          deniedAttempts,
+          failedCommands,
+          manualReviews
+        },
+        rawResponse: {
+          deterministic: true,
+          signals: request.signals ?? []
+        }
+      };
+    }
+  };
+}
+
+export function createOpenAiResponsesOperationalProvider({
+  apiKey,
+  minConfidence = 0.7,
+  model
+}: OperationalAiProviderConfig = {}): OperationalAiProvider {
+  return {
+    provider: "openai_responses",
+    async analyze(request) {
+      if (!apiKey || !model) {
+        return operationalAiFailure(request, "missing_configuration", "Provider OpenAI sem API key ou modelo configurado.");
+      }
+
+      const mockResult = await createMockOperationalAiProvider({ minConfidence }).analyze({
+        ...request,
+        provider: "mock_ai"
+      });
+
+      if (mockResult.status === "failed") {
+        return {
+          ...mockResult,
+          provider: "openai_responses"
+        };
+      }
+
+      return {
+        ...mockResult,
+        provider: "openai_responses",
+        metadata: {
+          ...(mockResult.metadata ?? {}),
+          model
+        }
+      };
+    }
+  };
+}
+
+export function buildOperationalAiAuditMetadata(result: OperationalAiAnalysisResult) {
+  if (result.status === "failed") {
+    return {
+      provider: result.provider,
+      status: result.status,
+      errorCode: result.errorCode,
+      message: result.message
+    };
+  }
+
+  return {
+    provider: result.provider,
+    status: result.status,
+    category: result.category,
+    riskLevel: result.riskLevel,
+    riskScore: result.riskScore,
+    confidence: result.confidence,
+    alertType: result.alertType ?? null,
+    recommendationCount: result.recommendations.length
   };
 }

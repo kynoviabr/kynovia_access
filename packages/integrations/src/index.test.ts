@@ -4,10 +4,13 @@ import {
   buildGateCommandAuditMetadata,
   buildLprAccessSubject,
   buildLprEventAuditMetadata,
+  buildOperationalAiAuditMetadata,
   createFacialProvider,
   createHttpRelayProvider,
   createMockFacialProvider,
+  createMockOperationalAiProvider,
   createMockLprProvider,
+  createOpenAiResponsesOperationalProvider,
   createMockGateProvider,
   createPlateRecognizerProvider,
   isGateCommandFailureCode,
@@ -23,6 +26,11 @@ import {
   isLprEventType,
   isLprFailureCode,
   isLprProvider,
+  isOperationalAiAlertType,
+  isOperationalAiEventCategory,
+  isOperationalAiFailureCode,
+  isOperationalAiProvider,
+  isOperationalAiRiskLevel,
   normalizeBrazilianPlate,
   type FacialConsent,
   type FacialEnrollmentRequest,
@@ -31,7 +39,8 @@ import {
   type HttpClient,
   type IntegrationEvent,
   type IntegrationProvider,
-  type LprWebhookRequest
+  type LprWebhookRequest,
+  type OperationalAiAnalysisRequest
 } from "./index";
 
 const command = {
@@ -101,6 +110,23 @@ const facialValidation = {
   payload: { fixture: true }
 } satisfies FacialValidationRequest;
 
+const aiAnalysis = {
+  id: "ai_analysis_123",
+  tenantId: "tenant_123",
+  condominiumId: "condominium_123",
+  provider: "mock_ai",
+  occurredAt: "2026-05-18T00:00:00.000Z",
+  eventSource: "access_event",
+  eventId: "access_event_123",
+  title: "Tentativas negadas recorrentes",
+  description: "Visitante com multiplas tentativas negadas em curto intervalo.",
+  signals: [
+    { name: "denied_attempts_24h", value: 4 },
+    { name: "manual_reviews_24h", value: 2 },
+    { name: "blacklist_hit", value: true }
+  ]
+} satisfies OperationalAiAnalysisRequest;
+
 describe("@kynovia/integrations", () => {
   it("supports typed integration providers and events", () => {
     const provider = "webhook" satisfies IntegrationProvider;
@@ -116,6 +142,7 @@ describe("@kynovia/integrations", () => {
     expect(isIntegrationProvider("http_relay")).toBe(true);
     expect(isIntegrationProvider("plate_recognizer")).toBe(true);
     expect(isIntegrationProvider("mock_facial")).toBe(true);
+    expect(isIntegrationProvider("mock_ai")).toBe(true);
   });
 
   it("validates gate command contracts", () => {
@@ -385,5 +412,42 @@ describe("@kynovia/integrations", () => {
       confidence: 0.95,
       livenessScore: 0.93
     });
+  });
+
+  it("validates operational AI contracts", () => {
+    expect(isOperationalAiProvider("mock_ai")).toBe(true);
+    expect(isOperationalAiProvider("generic_ai")).toBe(false);
+    expect(isOperationalAiEventCategory("possible_fraud")).toBe(true);
+    expect(isOperationalAiAlertType("operator_attention")).toBe(true);
+    expect(isOperationalAiRiskLevel("critical")).toBe(true);
+    expect(isOperationalAiFailureCode("missing_configuration")).toBe(true);
+  });
+
+  it("classifies operational events with the mock AI provider", async () => {
+    const result = await createMockOperationalAiProvider().analyze(aiAnalysis);
+    const audit = buildOperationalAiAuditMetadata(result);
+
+    expect(result.status).toBe("completed");
+    if (result.status === "completed") {
+      expect(result.category).toBe("possible_fraud");
+      expect(result.alertType).toBe("possible_fraud");
+      expect(result.recommendations.length).toBeGreaterThan(0);
+    }
+    expect(audit).toMatchObject({
+      provider: "mock_ai",
+      status: "completed"
+    });
+  });
+
+  it("requires configuration for the OpenAI Responses operational provider", async () => {
+    const result = await createOpenAiResponsesOperationalProvider().analyze({
+      ...aiAnalysis,
+      provider: "openai_responses"
+    });
+
+    expect(result.status).toBe("failed");
+    if (result.status === "failed") {
+      expect(result.errorCode).toBe("missing_configuration");
+    }
   });
 });

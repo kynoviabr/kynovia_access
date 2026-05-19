@@ -48,3 +48,5 @@ Architecture Decision Records should be added here as the platform choices becom
   normalization, confidence checks, and access subject mapping.
 - [Facial Biometrics](./facial-biometrics.md): provider contracts for facial enrollment,
   explicit consent, liveness checks, blacklist handling, and audit metadata.
+- [Operational AI](./operational-ai.md): advisory AI contracts for event classification, risk
+  scoring, alerts, and doorman assistant workflows.

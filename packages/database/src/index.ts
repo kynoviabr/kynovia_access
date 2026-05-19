@@ -55,6 +55,26 @@ export {
   occurrenceStatuses
 } from "./operations";
 export {
+  doormanAssistantRoles,
+  doormanAssistantSessionStatuses,
+  isDoormanAssistantRole,
+  isDoormanAssistantSessionStatus,
+  isOperationalAiAlertStatus,
+  isOperationalAiAlertType,
+  isOperationalAiCategory,
+  isOperationalAiEventSource,
+  isOperationalAiProvider,
+  isOperationalAiRiskLevel,
+  normalizeRiskScore,
+  operationalAiAlertStatuses,
+  operationalAiAlertTypes,
+  operationalAiCategories,
+  operationalAiEventSources,
+  operationalAiProviders,
+  operationalAiRiskLevels,
+  riskLevelFromScore
+} from "./operational-ai";
+export {
   isLikelyBrazilianPlate,
   isResidentApprovalStatus,
   isResidentFavoriteStatus,

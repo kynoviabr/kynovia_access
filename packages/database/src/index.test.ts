@@ -23,6 +23,14 @@ import {
   isLikelyBrazilianPlate,
   isOccurrenceSeverity,
   isOccurrenceStatus,
+  isDoormanAssistantRole,
+  isDoormanAssistantSessionStatus,
+  isOperationalAiAlertStatus,
+  isOperationalAiAlertType,
+  isOperationalAiCategory,
+  isOperationalAiEventSource,
+  isOperationalAiProvider,
+  isOperationalAiRiskLevel,
   isResidentApprovalStatus,
   isResidentFavoriteStatus,
   isResidentStatus,
@@ -31,11 +39,13 @@ import {
   normalizeAuditDateRange,
   normalizeInviteUsageLimit,
   normalizeNullableText,
+  normalizeRiskScore,
   normalizePhone,
   normalizeSlug,
   parseJsonObject,
   parseInviteQrPayload,
-  parseNonNegativeInteger
+  parseNonNegativeInteger,
+  riskLevelFromScore
 } from "./index";
 import type { Database } from "./index";
 
@@ -642,6 +652,120 @@ describe("@kynovia/database", () => {
             status: "approved"
           },
           Relationships: []
+        },
+        operational_ai_analyses: {
+          Row: {
+            id: "analysis_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            provider: "mock_ai",
+            model: null,
+            event_source: "access_event",
+            event_id: "access_event_123",
+            category: "possible_fraud",
+            risk_level: "high",
+            risk_score: 78,
+            confidence: 0.91,
+            summary: "Tentativas negadas recorrentes.",
+            recommendations: [],
+            signals: [],
+            status: "completed",
+            reviewed_by: null,
+            reviewed_at: null,
+            metadata: {},
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            event_source: "access_event",
+            category: "possible_fraud",
+            risk_level: "high",
+            risk_score: 78,
+            confidence: 0.91,
+            summary: "Tentativas negadas recorrentes."
+          },
+          Update: {
+            status: "dismissed"
+          },
+          Relationships: []
+        },
+        operational_ai_alerts: {
+          Row: {
+            id: "alert_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            analysis_id: "analysis_123",
+            alert_type: "possible_fraud",
+            severity: "high",
+            title: "Possivel fraude",
+            description: null,
+            status: "open",
+            assigned_to: null,
+            acknowledged_by: null,
+            acknowledged_at: null,
+            resolved_by: null,
+            resolved_at: null,
+            metadata: {},
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            alert_type: "possible_fraud",
+            title: "Possivel fraude"
+          },
+          Update: {
+            status: "acknowledged"
+          },
+          Relationships: []
+        },
+        doorman_assistant_sessions: {
+          Row: {
+            id: "assistant_session_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            operator_profile_id: "profile_123",
+            status: "open",
+            title: "Apoio portaria",
+            last_message_at: "2026-05-18T00:00:00Z",
+            metadata: {},
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123"
+          },
+          Update: {
+            status: "closed"
+          },
+          Relationships: []
+        },
+        doorman_assistant_messages: {
+          Row: {
+            id: "assistant_message_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            session_id: "assistant_session_123",
+            role: "assistant",
+            content: "Revise o cadastro antes da liberacao.",
+            model: "mock",
+            safety_flags: [],
+            metadata: {},
+            created_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            session_id: "assistant_session_123",
+            role: "operator",
+            content: "O que devo revisar?"
+          },
+          Update: undefined as never,
+          Relationships: []
         }
       },
       Views: {
@@ -756,5 +880,18 @@ describe("@kynovia/database", () => {
         format: "csv"
       })
     ).toBe("audit_tenant_demo_condominio_a_2026-05-18_2026-05-19.csv");
+  });
+
+  it("normalizes operational AI contracts", () => {
+    expect(isOperationalAiProvider("mock_ai")).toBe(true);
+    expect(isOperationalAiEventSource("access_event")).toBe(true);
+    expect(isOperationalAiCategory("possible_fraud")).toBe(true);
+    expect(isOperationalAiRiskLevel("critical")).toBe(true);
+    expect(isOperationalAiAlertType("hardware_attention")).toBe(true);
+    expect(isOperationalAiAlertStatus("acknowledged")).toBe(true);
+    expect(isDoormanAssistantRole("assistant")).toBe(true);
+    expect(isDoormanAssistantSessionStatus("closed")).toBe(true);
+    expect(normalizeRiskScore(120.2)).toBe(100);
+    expect(riskLevelFromScore(71)).toBe("high");
   });
 });
