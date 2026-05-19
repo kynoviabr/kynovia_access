@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildFacialValidationAuditMetadata,
   buildGateCommandAuditMetadata,
   buildLprAccessSubject,
   buildLprEventAuditMetadata,
+  createFacialProvider,
   createHttpRelayProvider,
+  createMockFacialProvider,
   createMockLprProvider,
   createMockGateProvider,
   createPlateRecognizerProvider,
@@ -12,11 +15,18 @@ import {
   isGateCommandStatus,
   isIntegrationProvider,
   isBrazilianPlateFormat,
+  isFacialConsentStatus,
+  isFacialFailureCode,
+  isFacialProvider,
+  isFacialValidationResult,
   isLprConfidenceLevel,
   isLprEventType,
   isLprFailureCode,
   isLprProvider,
   normalizeBrazilianPlate,
+  type FacialConsent,
+  type FacialEnrollmentRequest,
+  type FacialValidationRequest,
   type GateCommandRequest,
   type HttpClient,
   type IntegrationEvent,
@@ -57,6 +67,40 @@ const lprWebhook = {
   }
 } satisfies LprWebhookRequest;
 
+const facialConsent = {
+  id: "consent_123",
+  subjectId: "resident_123",
+  status: "granted",
+  grantedAt: "2026-05-18T00:00:00.000Z",
+  expiresAt: "2026-12-31T00:00:00.000Z",
+  legalBasis: "explicit_consent",
+  version: "2026-05"
+} satisfies FacialConsent;
+
+const facialEnrollment = {
+  id: "facial_enrollment_123",
+  tenantId: "tenant_123",
+  condominiumId: "condominium_123",
+  subjectId: "resident_123",
+  provider: "mock_facial",
+  requestedAt: "2026-05-18T00:00:00.000Z",
+  consent: facialConsent,
+  imageRef: "private://facial/resident_123/enrollment.jpg"
+} satisfies FacialEnrollmentRequest;
+
+const facialValidation = {
+  id: "facial_validation_123",
+  tenantId: "tenant_123",
+  condominiumId: "condominium_123",
+  accessPointId: "access_point_123",
+  provider: "mock_facial",
+  occurredAt: "2026-05-18T00:00:00.000Z",
+  direction: "entry",
+  subjectId: "resident_123",
+  consent: facialConsent,
+  payload: { fixture: true }
+} satisfies FacialValidationRequest;
+
 describe("@kynovia/integrations", () => {
   it("supports typed integration providers and events", () => {
     const provider = "webhook" satisfies IntegrationProvider;
@@ -71,6 +115,7 @@ describe("@kynovia/integrations", () => {
     expect(event.provider).toBe("email");
     expect(isIntegrationProvider("http_relay")).toBe(true);
     expect(isIntegrationProvider("plate_recognizer")).toBe(true);
+    expect(isIntegrationProvider("mock_facial")).toBe(true);
   });
 
   it("validates gate command contracts", () => {
@@ -246,6 +291,99 @@ describe("@kynovia/integrations", () => {
       provider: "plate_recognizer",
       eventType: "provider_error",
       errorCode: "no_plate_detected"
+    });
+  });
+
+  it("validates facial biometric contracts", () => {
+    expect(isFacialProvider("mock_facial")).toBe(true);
+    expect(isFacialProvider("camera_face")).toBe(false);
+    expect(isFacialConsentStatus("granted")).toBe(true);
+    expect(isFacialValidationResult("matched")).toBe(true);
+    expect(isFacialFailureCode("liveness_failed")).toBe(true);
+  });
+
+  it("enrolls a face with explicit valid consent using the mock provider", async () => {
+    const result = await createMockFacialProvider().enroll(facialEnrollment);
+
+    expect(result.status).toBe("enrolled");
+    if (result.status === "enrolled") {
+      expect(result.consentId).toBe("consent_123");
+      expect(result.providerSubjectId).toContain("resident_123");
+    }
+  });
+
+  it("rejects facial enrollment without valid consent", async () => {
+    const result = await createMockFacialProvider().enroll({
+      ...facialEnrollment,
+      consent: { ...facialConsent, status: "revoked", revokedAt: "2026-05-18T00:00:00.000Z" }
+    });
+
+    expect(result.status).toBe("failed");
+    if (result.status === "failed") {
+      expect(result.errorCode).toBe("consent_revoked");
+    }
+  });
+
+  it("matches facial validation when confidence and liveness are sufficient", async () => {
+    const outcome = await createMockFacialProvider().validate(facialValidation);
+    const audit = buildFacialValidationAuditMetadata(outcome);
+
+    expect(outcome.result).toBe("matched");
+    expect(outcome.requiresManualReview).toBe(false);
+    expect(audit).toMatchObject({
+      provider: "mock_facial",
+      result: "matched",
+      consentId: "consent_123"
+    });
+  });
+
+  it("routes low confidence and liveness failures to manual review", async () => {
+    const lowConfidence = await createMockFacialProvider({ confidence: 0.42 }).validate(facialValidation);
+    const lowLiveness = await createMockFacialProvider({ livenessScore: 0.2 }).validate(facialValidation);
+
+    expect(lowConfidence.result).toBe("manual_review");
+    expect(lowLiveness.result).toBe("manual_review");
+    if (lowConfidence.result === "manual_review" && lowLiveness.result === "manual_review") {
+      expect(lowConfidence.reason).toBe("low_confidence");
+      expect(lowLiveness.reason).toBe("liveness_failed");
+    }
+  });
+
+  it("denies blacklisted facial subjects without manual release", async () => {
+    const outcome = await createMockFacialProvider().validate({
+      ...facialValidation,
+      blacklist: { active: true, reason: "Bloqueio operacional" }
+    });
+
+    expect(outcome.result).toBe("denied");
+    if (outcome.result === "denied") {
+      expect(outcome.reason).toBe("blacklisted_face");
+    }
+  });
+
+  it("parses generic facial provider payloads", async () => {
+    const outcome = await createFacialProvider({ minConfidence: 0.9, minLivenessScore: 0.85 }).validate({
+      ...facialValidation,
+      provider: "facial_provider",
+      payload: {
+        match: {
+          providerSubjectId: "provider_subject_123",
+          subjectId: "resident_123",
+          confidence: 0.95
+        },
+        liveness: {
+          score: 0.93,
+          passed: true
+        }
+      }
+    });
+
+    expect(outcome).toMatchObject({
+      result: "matched",
+      provider: "facial_provider",
+      providerSubjectId: "provider_subject_123",
+      confidence: 0.95,
+      livenessScore: 0.93
     });
   });
 });

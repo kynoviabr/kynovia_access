@@ -46,3 +46,5 @@ Architecture Decision Records should be added here as the platform choices becom
   dispatch.
 - [License Plate Recognition](./lpr.md): provider contracts for LPR webhook parsing, plate
   normalization, confidence checks, and access subject mapping.
+- [Facial Biometrics](./facial-biometrics.md): provider contracts for facial enrollment,
+  explicit consent, liveness checks, blacklist handling, and audit metadata.

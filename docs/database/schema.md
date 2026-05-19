@@ -149,3 +149,20 @@ This supports tenant-wide administration and condominium-level isolation.
 - Plate Recognizer credentials and webhook verification secrets must live in server-side
   environment variables or Supabase Edge Function secrets.
 - Raw provider payload retention must follow the audit and LGPD retention policy.
+
+## Phase 13 Facial Biometrics Rules
+
+- Facial biometrics require explicit consent before enrollment or validation.
+- Consent records must store the accepted consent version, grant timestamp, optional expiration, and
+  revocation status.
+- Biometric templates and raw face images must not be exposed to frontend code or stored in public
+  buckets.
+- Store provider subject ids and audit metadata, not provider secrets.
+- Facial validation must include confidence and liveness scores.
+- Low confidence, missing consent, expired consent, or failed liveness must route to manual review
+  instead of a gate command.
+- Facial blacklist hits must produce a denied validation result with an auditable reason.
+- `@kynovia/integrations` validates provider payloads and builds audit metadata.
+- `@kynovia/access-engine` remains responsible for the final allow, deny, or manual review decision.
+- Facial provider credentials, webhook secrets, and template encryption keys must live in
+  server-side environment variables or Supabase Edge Function secrets.

@@ -6,7 +6,9 @@ export const integrationProviders = [
   "mock_gate",
   "http_relay",
   "mock_lpr",
-  "plate_recognizer"
+  "plate_recognizer",
+  "mock_facial",
+  "facial_provider"
 ] as const;
 export const gateCommandNames = ["open", "close", "hold_open", "lock"] as const;
 export const gateCommandStatuses = ["pending", "sent", "confirmed", "failed", "cancelled"] as const;
@@ -28,6 +30,20 @@ export const lprFailureCodes = [
   "invalid_payload",
   "no_plate_detected"
 ] as const;
+export const facialProviders = ["mock_facial", "facial_provider"] as const;
+export const facialConsentStatuses = ["granted", "revoked", "expired"] as const;
+export const facialValidationResults = ["matched", "manual_review", "denied"] as const;
+export const facialFailureCodes = [
+  "missing_configuration",
+  "provider_error",
+  "invalid_payload",
+  "missing_consent",
+  "consent_revoked",
+  "consent_expired",
+  "low_confidence",
+  "liveness_failed",
+  "blacklisted_face"
+] as const;
 
 export type IntegrationProvider = (typeof integrationProviders)[number];
 export type GateCommandName = (typeof gateCommandNames)[number];
@@ -37,6 +53,10 @@ export type LprProviderName = (typeof lprProviders)[number];
 export type LprEventType = (typeof lprEventTypes)[number];
 export type LprConfidenceLevel = (typeof lprConfidenceLevels)[number];
 export type LprFailureCode = (typeof lprFailureCodes)[number];
+export type FacialProviderName = (typeof facialProviders)[number];
+export type FacialConsentStatus = (typeof facialConsentStatuses)[number];
+export type FacialValidationResult = (typeof facialValidationResults)[number];
+export type FacialFailureCode = (typeof facialFailureCodes)[number];
 
 export type IntegrationEvent = {
   id: string;
@@ -111,6 +131,154 @@ export type LprAccessSubject = {
 
 export type PlateRecognizerConfig = {
   minConfidence?: number;
+};
+
+export type FacialConsent = {
+  id: string;
+  subjectId: string;
+  status: FacialConsentStatus;
+  grantedAt: string;
+  expiresAt?: string | null;
+  revokedAt?: string | null;
+  legalBasis: "explicit_consent";
+  version: string;
+};
+
+export type FacialEnrollmentRequest = {
+  id: string;
+  tenantId: string;
+  condominiumId: string;
+  subjectId: string;
+  provider: FacialProviderName;
+  requestedAt: string;
+  consent: FacialConsent | null;
+  imageRef?: string | null;
+  metadata?: Record<string, string | number | boolean | null>;
+};
+
+export type FacialEnrollmentSuccess = {
+  status: "enrolled";
+  provider: FacialProviderName;
+  providerSubjectId: string;
+  enrolledAt: string;
+  consentId: string;
+  message: string;
+  rawResponse?: unknown;
+};
+
+export type FacialEnrollmentFailure = {
+  status: "failed";
+  provider: FacialProviderName;
+  failedAt: string;
+  errorCode: FacialFailureCode;
+  message: string;
+  rawResponse?: unknown;
+};
+
+export type FacialEnrollmentResult = FacialEnrollmentSuccess | FacialEnrollmentFailure;
+
+export type FacialValidationRequest = {
+  id: string;
+  tenantId: string;
+  condominiumId: string;
+  accessPointId: string;
+  provider: FacialProviderName;
+  occurredAt: string;
+  direction?: "entry" | "exit" | null;
+  subjectId?: string | null;
+  providerSubjectId?: string | null;
+  consent?: FacialConsent | null;
+  minConfidence?: number;
+  minLivenessScore?: number;
+  blacklist?: {
+    active: boolean;
+    reason?: string | null;
+  } | null;
+  payload: unknown;
+};
+
+export type FacialValidationSuccess = {
+  id: string;
+  tenantId: string;
+  condominiumId: string;
+  accessPointId: string;
+  provider: FacialProviderName;
+  occurredAt: string;
+  result: "matched";
+  confidence: number;
+  livenessScore: number;
+  requiresManualReview: false;
+  providerSubjectId: string;
+  subjectId?: string | null;
+  consentId: string;
+  direction?: "entry" | "exit" | null;
+  rawPayload?: unknown;
+};
+
+export type FacialValidationReview = {
+  id: string;
+  tenantId: string;
+  condominiumId: string;
+  accessPointId: string;
+  provider: FacialProviderName;
+  occurredAt: string;
+  result: "manual_review";
+  confidence: number | null;
+  livenessScore: number | null;
+  requiresManualReview: true;
+  reason: FacialFailureCode;
+  message: string;
+  providerSubjectId?: string | null;
+  subjectId?: string | null;
+  direction?: "entry" | "exit" | null;
+  rawPayload?: unknown;
+};
+
+export type FacialValidationDenied = {
+  id: string;
+  tenantId: string;
+  condominiumId: string;
+  accessPointId: string;
+  provider: FacialProviderName;
+  occurredAt: string;
+  result: "denied";
+  confidence: number | null;
+  livenessScore: number | null;
+  requiresManualReview: false;
+  reason: FacialFailureCode;
+  message: string;
+  providerSubjectId?: string | null;
+  subjectId?: string | null;
+  direction?: "entry" | "exit" | null;
+  rawPayload?: unknown;
+};
+
+export type FacialValidationOutcome =
+  | FacialValidationSuccess
+  | FacialValidationReview
+  | FacialValidationDenied;
+
+export type FacialProvider = {
+  readonly provider: FacialProviderName;
+  enroll: (request: FacialEnrollmentRequest) => Promise<FacialEnrollmentResult>;
+  validate: (request: FacialValidationRequest) => Promise<FacialValidationOutcome>;
+};
+
+export type FacialProviderConfig = {
+  minConfidence?: number;
+  minLivenessScore?: number;
+};
+
+export type FacialProviderPayload = {
+  match?: {
+    providerSubjectId?: unknown;
+    subjectId?: unknown;
+    confidence?: unknown;
+  };
+  liveness?: {
+    score?: unknown;
+    passed?: unknown;
+  };
 };
 
 type PlateRecognizerResult = {
@@ -222,6 +390,22 @@ export function isLprConfidenceLevel(value: string): value is LprConfidenceLevel
 
 export function isLprFailureCode(value: string): value is LprFailureCode {
   return lprFailureCodes.includes(value as LprFailureCode);
+}
+
+export function isFacialProvider(value: string): value is FacialProviderName {
+  return facialProviders.includes(value as FacialProviderName);
+}
+
+export function isFacialConsentStatus(value: string): value is FacialConsentStatus {
+  return facialConsentStatuses.includes(value as FacialConsentStatus);
+}
+
+export function isFacialValidationResult(value: string): value is FacialValidationResult {
+  return facialValidationResults.includes(value as FacialValidationResult);
+}
+
+export function isFacialFailureCode(value: string): value is FacialFailureCode {
+  return facialFailureCodes.includes(value as FacialFailureCode);
 }
 
 export function normalizeBrazilianPlate(value: string) {
@@ -351,6 +535,141 @@ function validateGateCommandRequest(request: GateCommandRequest): GateCommandFai
   }
 
   return null;
+}
+
+function timestamp(value: string) {
+  const parsed = new Date(value).getTime();
+
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+export function hasValidFacialConsent(consent: FacialConsent | null | undefined, evaluatedAt: string) {
+  if (!consent) {
+    return { valid: false as const, reason: "missing_consent" as const };
+  }
+
+  if (consent.status === "revoked" || consent.revokedAt) {
+    return { valid: false as const, reason: "consent_revoked" as const };
+  }
+
+  if (consent.status === "expired") {
+    return { valid: false as const, reason: "consent_expired" as const };
+  }
+
+  if (consent.expiresAt) {
+    const expiresAt = timestamp(consent.expiresAt);
+    const now = timestamp(evaluatedAt);
+
+    if (expiresAt !== null && now !== null && expiresAt < now) {
+      return { valid: false as const, reason: "consent_expired" as const };
+    }
+  }
+
+  return { valid: true as const, consentId: consent.id };
+}
+
+function facialEnrollmentFailure(
+  request: FacialEnrollmentRequest,
+  errorCode: FacialFailureCode,
+  message: string,
+  rawResponse?: unknown
+): FacialEnrollmentFailure {
+  return {
+    status: "failed",
+    provider: request.provider,
+    failedAt: nowIso(),
+    errorCode,
+    message,
+    rawResponse
+  };
+}
+
+function facialReview(
+  request: FacialValidationRequest,
+  reason: FacialFailureCode,
+  message: string,
+  {
+    confidence = null,
+    livenessScore = null,
+    providerSubjectId = request.providerSubjectId ?? null,
+    rawPayload = request.payload
+  }: {
+    confidence?: number | null;
+    livenessScore?: number | null;
+    providerSubjectId?: string | null;
+    rawPayload?: unknown;
+  } = {}
+): FacialValidationReview {
+  return {
+    id: request.id,
+    tenantId: request.tenantId,
+    condominiumId: request.condominiumId,
+    accessPointId: request.accessPointId,
+    provider: request.provider,
+    occurredAt: request.occurredAt,
+    result: "manual_review",
+    confidence,
+    livenessScore,
+    requiresManualReview: true,
+    reason,
+    message,
+    providerSubjectId,
+    subjectId: request.subjectId ?? null,
+    direction: request.direction ?? null,
+    rawPayload
+  };
+}
+
+function facialDenied(
+  request: FacialValidationRequest,
+  reason: FacialFailureCode,
+  message: string,
+  {
+    confidence = null,
+    livenessScore = null,
+    providerSubjectId = request.providerSubjectId ?? null,
+    rawPayload = request.payload
+  }: {
+    confidence?: number | null;
+    livenessScore?: number | null;
+    providerSubjectId?: string | null;
+    rawPayload?: unknown;
+  } = {}
+): FacialValidationDenied {
+  return {
+    id: request.id,
+    tenantId: request.tenantId,
+    condominiumId: request.condominiumId,
+    accessPointId: request.accessPointId,
+    provider: request.provider,
+    occurredAt: request.occurredAt,
+    result: "denied",
+    confidence,
+    livenessScore,
+    requiresManualReview: false,
+    reason,
+    message,
+    providerSubjectId,
+    subjectId: request.subjectId ?? null,
+    direction: request.direction ?? null,
+    rawPayload
+  };
+}
+
+function confidenceFromFacialPayload(payload: FacialProviderPayload) {
+  return typeof payload.match?.confidence === "number" ? payload.match.confidence : null;
+}
+
+function livenessFromFacialPayload(payload: FacialProviderPayload) {
+  return typeof payload.liveness?.score === "number" ? payload.liveness.score : null;
+}
+
+function providerSubjectFromFacialPayload(payload: FacialProviderPayload) {
+  return typeof payload.match?.providerSubjectId === "string" ? payload.match.providerSubjectId : null;
+}
+
+function subjectFromFacialPayload(payload: FacialProviderPayload) {
+  return typeof payload.match?.subjectId === "string" ? payload.match.subjectId : null;
 }
 
 export function createMockGateProvider({
@@ -598,5 +917,229 @@ export function buildLprEventAuditMetadata(reading: LprWebhookResult) {
     confidenceLevel: reading.confidenceLevel,
     requiresManualReview: reading.requiresManualReview,
     minConfidence: reading.minConfidence
+  };
+}
+
+export function createMockFacialProvider({
+  confidence = 0.97,
+  livenessScore = 0.96,
+  minConfidence = 0.9,
+  minLivenessScore = 0.85,
+  providerSubjectId = "mock-face-subject"
+}: {
+  confidence?: number;
+  livenessScore?: number;
+  minConfidence?: number;
+  minLivenessScore?: number;
+  providerSubjectId?: string;
+} = {}): FacialProvider {
+  return {
+    provider: "mock_facial",
+    async enroll(request) {
+      if (!request.id || !request.tenantId || !request.condominiumId || !request.subjectId) {
+        return facialEnrollmentFailure(
+          request,
+          "invalid_payload",
+          "Cadastro facial sem contexto operacional obrigatorio.",
+          request.metadata ?? null
+        );
+      }
+
+      const consent = hasValidFacialConsent(request.consent, request.requestedAt);
+
+      if (!consent.valid) {
+        return facialEnrollmentFailure(request, consent.reason, "Consentimento facial invalido para cadastro.");
+      }
+
+      return {
+        status: "enrolled",
+        provider: "mock_facial",
+        providerSubjectId: `${providerSubjectId}-${request.subjectId}`,
+        enrolledAt: nowIso(),
+        consentId: consent.consentId,
+        message: "Cadastro facial confirmado pelo provider mock.",
+        rawResponse: {
+          subjectId: request.subjectId,
+          imageRef: request.imageRef ?? null
+        }
+      };
+    },
+    async validate(request) {
+      if (!request.id || !request.tenantId || !request.condominiumId || !request.accessPointId) {
+        return facialReview(request, "invalid_payload", "Validacao facial sem contexto operacional obrigatorio.");
+      }
+
+      if (request.blacklist?.active) {
+        return facialDenied(
+          request,
+          "blacklisted_face",
+          request.blacklist.reason ?? "Face bloqueada para acesso.",
+          { confidence, livenessScore, providerSubjectId }
+        );
+      }
+
+      const consent = hasValidFacialConsent(request.consent, request.occurredAt);
+
+      if (!consent.valid) {
+        return facialReview(request, consent.reason, "Consentimento facial ausente ou invalido.", {
+          confidence,
+          livenessScore,
+          providerSubjectId
+        });
+      }
+
+      const requiredConfidence = request.minConfidence ?? minConfidence;
+      const requiredLiveness = request.minLivenessScore ?? minLivenessScore;
+
+      if (livenessScore < requiredLiveness) {
+        return facialReview(request, "liveness_failed", "Liveness facial abaixo do minimo configurado.", {
+          confidence,
+          livenessScore,
+          providerSubjectId
+        });
+      }
+
+      if (confidence < requiredConfidence) {
+        return facialReview(request, "low_confidence", "Confianca facial abaixo do minimo configurado.", {
+          confidence,
+          livenessScore,
+          providerSubjectId
+        });
+      }
+
+      return {
+        id: request.id,
+        tenantId: request.tenantId,
+        condominiumId: request.condominiumId,
+        accessPointId: request.accessPointId,
+        provider: "mock_facial",
+        occurredAt: request.occurredAt,
+        result: "matched",
+        confidence,
+        livenessScore,
+        requiresManualReview: false,
+        providerSubjectId,
+        subjectId: request.subjectId ?? null,
+        consentId: consent.consentId,
+        direction: request.direction ?? null,
+        rawPayload: request.payload
+      };
+    }
+  };
+}
+
+export function createFacialProvider({ minConfidence = 0.9, minLivenessScore = 0.85 }: FacialProviderConfig = {}): FacialProvider {
+  return {
+    provider: "facial_provider",
+    async enroll(request) {
+      if (!request.id || !request.tenantId || !request.condominiumId || !request.subjectId) {
+        return facialEnrollmentFailure(request, "invalid_payload", "Cadastro facial sem contexto operacional obrigatorio.");
+      }
+
+      const consent = hasValidFacialConsent(request.consent, request.requestedAt);
+
+      if (!consent.valid) {
+        return facialEnrollmentFailure(request, consent.reason, "Consentimento facial invalido para cadastro.");
+      }
+
+      if (!request.imageRef) {
+        return facialEnrollmentFailure(request, "invalid_payload", "Cadastro facial sem referencia de imagem segura.");
+      }
+
+      return {
+        status: "enrolled",
+        provider: "facial_provider",
+        providerSubjectId: `facial-${request.subjectId}`,
+        enrolledAt: nowIso(),
+        consentId: consent.consentId,
+        message: "Cadastro facial aceito pelo contrato do provider.",
+        rawResponse: {
+          imageRef: request.imageRef,
+          metadata: request.metadata ?? {}
+        }
+      };
+    },
+    async validate(request) {
+      if (!request.payload || typeof request.payload !== "object") {
+        return facialReview(request, "invalid_payload", "Payload facial invalido.", {
+          rawPayload: request.payload
+        });
+      }
+
+      if (request.blacklist?.active) {
+        return facialDenied(request, "blacklisted_face", request.blacklist.reason ?? "Face bloqueada para acesso.");
+      }
+
+      const consent = hasValidFacialConsent(request.consent, request.occurredAt);
+
+      if (!consent.valid) {
+        return facialReview(request, consent.reason, "Consentimento facial ausente ou invalido.");
+      }
+
+      const payload = request.payload as FacialProviderPayload;
+      const confidence = confidenceFromFacialPayload(payload);
+      const livenessScore = livenessFromFacialPayload(payload);
+      const providerSubjectId = providerSubjectFromFacialPayload(payload) ?? request.providerSubjectId ?? null;
+      const subjectId = subjectFromFacialPayload(payload) ?? request.subjectId ?? null;
+      const requiredConfidence = request.minConfidence ?? minConfidence;
+      const requiredLiveness = request.minLivenessScore ?? minLivenessScore;
+
+      if (!providerSubjectId || confidence === null || livenessScore === null) {
+        return facialReview(request, "invalid_payload", "Payload facial sem match, confianca ou liveness.", {
+          confidence,
+          livenessScore,
+          providerSubjectId
+        });
+      }
+
+      if (payload.liveness?.passed === false || livenessScore < requiredLiveness) {
+        return facialReview(request, "liveness_failed", "Liveness facial nao atingiu o minimo configurado.", {
+          confidence,
+          livenessScore,
+          providerSubjectId
+        });
+      }
+
+      if (confidence < requiredConfidence) {
+        return facialReview(request, "low_confidence", "Confianca facial abaixo do minimo configurado.", {
+          confidence,
+          livenessScore,
+          providerSubjectId
+        });
+      }
+
+      return {
+        id: request.id,
+        tenantId: request.tenantId,
+        condominiumId: request.condominiumId,
+        accessPointId: request.accessPointId,
+        provider: "facial_provider",
+        occurredAt: request.occurredAt,
+        result: "matched",
+        confidence,
+        livenessScore,
+        requiresManualReview: false,
+        providerSubjectId,
+        subjectId,
+        consentId: consent.consentId,
+        direction: request.direction ?? null,
+        rawPayload: request.payload
+      };
+    }
+  };
+}
+
+export function buildFacialValidationAuditMetadata(outcome: FacialValidationOutcome) {
+  return {
+    provider: outcome.provider,
+    result: outcome.result,
+    confidence: outcome.confidence,
+    livenessScore: outcome.livenessScore,
+    requiresManualReview: outcome.requiresManualReview,
+    providerSubjectId: outcome.providerSubjectId ?? null,
+    subjectId: outcome.subjectId ?? null,
+    ...(outcome.result === "matched"
+      ? { consentId: outcome.consentId }
+      : { reason: outcome.reason, message: outcome.message })
   };
 }
