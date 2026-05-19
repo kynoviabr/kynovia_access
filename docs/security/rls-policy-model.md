@@ -50,6 +50,10 @@ Condominium memberships support:
 - Access events can be updated by condominium operators to resolve manual-review decisions.
 - Gatehouse occurrences can be read by users with condominium access and inserted/updated only by
   condominium operators.
+- Resident favorite visitors can be selected, inserted, and archived only by the active resident
+  linked to the row.
+- Resident access approvals can be read by operators or the linked active resident; operators can
+  create requests and residents can approve or reject their own pending requests.
 - Audit logs are readable by same-tenant users and immutable after insert.
 
 ## Service Role Boundary

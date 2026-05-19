@@ -13,6 +13,8 @@ import {
   isLikelyBrazilianPlate,
   isOccurrenceSeverity,
   isOccurrenceStatus,
+  isResidentApprovalStatus,
+  isResidentFavoriteStatus,
   isResidentStatus,
   isResidentUnitRelationship,
   normalizeBrazilianPlate,
@@ -491,6 +493,62 @@ describe("@kynovia/database", () => {
             status: "exited"
           },
           Relationships: []
+        },
+        resident_favorite_visitors: {
+          Row: {
+            id: "favorite_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            resident_id: "resident_123",
+            unit_id: "unit_123",
+            visitor_name: "Joao Visitante",
+            visitor_phone: "11999999999",
+            plate: "ABC1D23",
+            notes: "Familiar",
+            status: "active",
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            resident_id: "resident_123",
+            visitor_name: "Joao Visitante"
+          },
+          Update: {
+            status: "archived"
+          },
+          Relationships: []
+        },
+        resident_access_approvals: {
+          Row: {
+            id: "approval_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            resident_id: "resident_123",
+            unit_id: "unit_123",
+            visitor_name: "Joao Visitante",
+            visitor_phone: "11999999999",
+            plate: "ABC1D23",
+            status: "pending",
+            requested_by: "profile_123",
+            decided_by: null,
+            decided_at: null,
+            expires_at: "2026-05-18T01:00:00Z",
+            notes: "Aguardando morador",
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            resident_id: "resident_123",
+            visitor_name: "Joao Visitante"
+          },
+          Update: {
+            status: "approved"
+          },
+          Relationships: []
         }
       },
       Views: {},
@@ -520,6 +578,10 @@ describe("@kynovia/database", () => {
     expect(isResidentStatus("blocked")).toBe(true);
     expect(isResidentStatus("pending")).toBe(false);
     expect(isResidentUnitRelationship("owner")).toBe(true);
+    expect(isResidentFavoriteStatus("active")).toBe(true);
+    expect(isResidentFavoriteStatus("deleted")).toBe(false);
+    expect(isResidentApprovalStatus("approved")).toBe(true);
+    expect(isResidentApprovalStatus("waiting")).toBe(false);
   });
 
   it("normalizes invite and QR inputs", () => {

@@ -1,8 +1,12 @@
 export const residentStatuses = ["active", "inactive", "blocked"] as const;
 export const residentUnitRelationships = ["owner", "tenant", "dependent", "resident"] as const;
+export const residentFavoriteStatuses = ["active", "archived"] as const;
+export const residentApprovalStatuses = ["pending", "approved", "rejected", "expired"] as const;
 
 export type ResidentStatus = (typeof residentStatuses)[number];
 export type ResidentUnitRelationship = (typeof residentUnitRelationships)[number];
+export type ResidentFavoriteStatus = (typeof residentFavoriteStatuses)[number];
+export type ResidentApprovalStatus = (typeof residentApprovalStatuses)[number];
 
 export function isResidentStatus(value: string): value is ResidentStatus {
   return residentStatuses.includes(value as ResidentStatus);
@@ -10,6 +14,14 @@ export function isResidentStatus(value: string): value is ResidentStatus {
 
 export function isResidentUnitRelationship(value: string): value is ResidentUnitRelationship {
   return residentUnitRelationships.includes(value as ResidentUnitRelationship);
+}
+
+export function isResidentFavoriteStatus(value: string): value is ResidentFavoriteStatus {
+  return residentFavoriteStatuses.includes(value as ResidentFavoriteStatus);
+}
+
+export function isResidentApprovalStatus(value: string): value is ResidentApprovalStatus {
+  return residentApprovalStatuses.includes(value as ResidentApprovalStatus);
 }
 
 export function normalizeBrazilianPlate(value: string) {
