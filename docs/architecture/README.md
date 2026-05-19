@@ -44,3 +44,5 @@ Architecture Decision Records should be added here as the platform choices becom
   automatic access evaluation.
 - [Gate Integrations](./gate-integrations.md): provider contracts for gate and relay command
   dispatch.
+- [License Plate Recognition](./lpr.md): provider contracts for LPR webhook parsing, plate
+  normalization, confidence checks, and access subject mapping.
