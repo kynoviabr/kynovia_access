@@ -31,6 +31,7 @@ This document summarizes the foundation schema created for Kynovia Access.
 - `visitor_vehicle_accesses`: active and historical visitor vehicle entries/exits by plate.
 - `access_events`: access decisions such as allow, deny, or manual review.
 - `gate_commands`: physical command queue for gates and relays.
+- `gatehouse_occurrences`: doorman operational occurrences with severity and resolution status.
 
 ## Compliance
 
@@ -98,3 +99,15 @@ This supports tenant-wide administration and condominium-level isolation.
   `exit_validated_by`, and `status = 'exited'`.
 - `vehicle_plate_blacklist` blocks active plates before invite lookup and records the denied
   validation result.
+
+## Phase 08 Doorman Panel Rules
+
+- The doorman panel reads `access_events` as the operational access queue.
+- Events with `decision = 'manual_review'` are treated as pending validation items.
+- Manual releases and denials are recorded in `access_events` with `metadata.source = 'doorman_panel'`.
+- A manual release can create a `gate_commands` row with provider `mock` and status `pending` when
+  an access point is selected.
+- Gate status is derived from the latest `gate_commands` row for each `access_point_id`.
+- Open doorman incidents are stored in `gatehouse_occurrences` with severity and status fields.
+- `gatehouse_occurrences` is tenant-aware through `tenant_id` and condominium-aware through
+  `condominium_id`.

@@ -21,6 +21,19 @@ export {
   parseInviteQrPayload
 } from "./invites";
 export {
+  accessDecisions,
+  accessDirections,
+  gateCommandStatuses,
+  gateCommands,
+  isAccessDecision,
+  isAccessDirection,
+  isGateCommand,
+  isOccurrenceSeverity,
+  isOccurrenceStatus,
+  occurrenceSeverities,
+  occurrenceStatuses
+} from "./operations";
+export {
   isLikelyBrazilianPlate,
   isResidentStatus,
   isResidentUnitRelationship,

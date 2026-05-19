@@ -540,6 +540,156 @@ export type Database = {
         };
         Relationships: [];
       };
+      access_events: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          condominium_id: string;
+          access_point_id: string | null;
+          invite_id: string | null;
+          resident_id: string | null;
+          visitor_id: string | null;
+          plate: string | null;
+          direction: string;
+          decision: string;
+          reason: string | null;
+          decided_by: string | null;
+          decided_at: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          condominium_id: string;
+          access_point_id?: string | null;
+          invite_id?: string | null;
+          resident_id?: string | null;
+          visitor_id?: string | null;
+          plate?: string | null;
+          direction: string;
+          decision: string;
+          reason?: string | null;
+          decided_by?: string | null;
+          decided_at?: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          condominium_id?: string;
+          access_point_id?: string | null;
+          invite_id?: string | null;
+          resident_id?: string | null;
+          visitor_id?: string | null;
+          plate?: string | null;
+          direction?: string;
+          decision?: string;
+          reason?: string | null;
+          decided_by?: string | null;
+          decided_at?: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      gate_commands: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          condominium_id: string;
+          access_point_id: string;
+          access_event_id: string | null;
+          command: string;
+          provider: string;
+          status: string;
+          requested_by: string | null;
+          requested_at: string;
+          executed_at: string | null;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          condominium_id: string;
+          access_point_id: string;
+          access_event_id?: string | null;
+          command: string;
+          provider?: string;
+          status?: string;
+          requested_by?: string | null;
+          requested_at?: string;
+          executed_at?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          condominium_id?: string;
+          access_point_id?: string;
+          access_event_id?: string | null;
+          command?: string;
+          provider?: string;
+          status?: string;
+          requested_by?: string | null;
+          requested_at?: string;
+          executed_at?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      gatehouse_occurrences: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          condominium_id: string;
+          title: string;
+          description: string | null;
+          severity: string;
+          status: string;
+          created_by: string | null;
+          resolved_by: string | null;
+          resolved_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          condominium_id: string;
+          title: string;
+          description?: string | null;
+          severity?: string;
+          status?: string;
+          created_by?: string | null;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          condominium_id?: string;
+          title?: string;
+          description?: string | null;
+          severity?: string;
+          status?: string;
+          created_by?: string | null;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       vehicle_plate_blacklist: {
         Row: {
           id: string;
