@@ -2,6 +2,8 @@
 
 import {
   isInviteType,
+  isLikelyBrazilianPlate,
+  normalizeBrazilianPlate,
   normalizeInviteUsageLimit,
   normalizeNullableText,
   normalizePhone
@@ -65,8 +67,10 @@ export async function createInviteAction(formData: FormData) {
   const visitorName = formValue(formData, "visitorName");
   const startsAt = formValue(formData, "startsAt");
   const expiresAt = formValue(formData, "expiresAt");
+  const plateInput = formValue(formData, "plate");
   const inviteTypeInput = formValue(formData, "inviteType");
   const inviteType = isInviteType(inviteTypeInput) ? inviteTypeInput : "single";
+  const plate = plateInput ? normalizeBrazilianPlate(plateInput) : null;
 
   if (!unitId || !visitorName || !expiresAt) {
     redirect("/home/invites?error=missing_invite_fields");
@@ -78,6 +82,10 @@ export async function createInviteAction(formData: FormData) {
 
   if (new Date(expiresIso).getTime() <= new Date(startIso).getTime()) {
     redirect("/home/invites?error=invalid_invite_window");
+  }
+
+  if (plate && !isLikelyBrazilianPlate(plate)) {
+    redirect("/home/invites?error=invalid_plate");
   }
 
   const { profile, resident } = await getResidentUnitContext(unitId);
@@ -93,6 +101,7 @@ export async function createInviteAction(formData: FormData) {
       resident_id: resident.id,
       visitor_name: visitorName,
       visitor_phone: normalizeNullableText(normalizePhone(formValue(formData, "visitorPhone"))),
+      plate,
       starts_at: startIso,
       expires_at: expiresIso,
       max_uses: normalizeInviteUsageLimit(formValue(formData, "maxUses")),

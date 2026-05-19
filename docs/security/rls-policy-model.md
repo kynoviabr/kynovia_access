@@ -43,6 +43,10 @@ Condominium memberships support:
   linked to an active resident and to the selected unit.
 - Gatehouse invite validation records can be inserted by operators and read by users with
   condominium access.
+- Vehicle plate blacklists can be read by users with condominium access and managed only by
+  condominium operators.
+- Visitor vehicle access stays can be read by users with condominium access and inserted/updated
+  only by condominium operators.
 - Audit logs are readable by same-tenant users and immutable after insert.
 
 ## Service Role Boundary

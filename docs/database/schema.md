@@ -27,6 +27,8 @@ This document summarizes the foundation schema created for Kynovia Access.
 - `access_invites`: visitor authorization window, optional plate, usage limits, QR token hash,
   recurrence metadata, cancellation metadata, and status.
 - `access_invite_validations`: history of gatehouse QR validations and their outcomes.
+- `vehicle_plate_blacklist`: condominium-scoped blocked visitor plates.
+- `visitor_vehicle_accesses`: active and historical visitor vehicle entries/exits by plate.
 - `access_events`: access decisions such as allow, deny, or manual review.
 - `gate_commands`: physical command queue for gates and relays.
 
@@ -81,3 +83,18 @@ This supports tenant-wide administration and condominium-level isolation.
   `recurrence_rule`; scheduling automation is intentionally left for a later operational story.
 - Gatehouse validations are recorded in `access_invite_validations` with a normalized result such as
   `allowed`, `expired`, `cancelled`, `not_started`, `usage_limit_reached`, or `invalid`.
+
+## Phase 07 Vehicle Plate Invite Rules
+
+- A digital invite may include an optional normalized Brazilian plate in `access_invites.plate`.
+- Plate values must match the normalized Brazilian plate format used by the application helpers.
+- Gatehouse operators can validate access by plate without scanning the QR payload.
+- A successful plate entry increments `access_invites.use_count` and creates a
+  `visitor_vehicle_accesses` active stay.
+- A visitor vehicle can have only one active stay per condominium and plate.
+- Visitor parking capacity is checked against `condominiums.visitor_parking_capacity`; a value of
+  `0` means no capacity limit is enforced.
+- Exits are recorded by updating the active `visitor_vehicle_accesses` row with `exited_at`,
+  `exit_validated_by`, and `status = 'exited'`.
+- `vehicle_plate_blacklist` blocks active plates before invite lookup and records the denied
+  validation result.
