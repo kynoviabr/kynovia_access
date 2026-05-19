@@ -125,3 +125,14 @@ This supports tenant-wide administration and condominium-level isolation.
   a pending request before `expires_at`.
 - The PWA reads invite history, validation history, and visitor vehicle access history to present a
   resident-facing access timeline.
+
+## Phase 11 Gate Integration Rules
+
+- Gate command rows remain the database source of truth for physical command requests.
+- Providers are represented by `gate_commands.provider`; initial provider contracts are `mock_gate`
+  and `http_relay`.
+- Provider dispatch is side-effectful and must happen outside the database through app, job, or Edge
+  Function code.
+- Provider results should update `gate_commands.status`, `executed_at`, and `metadata` with audit
+  details returned by `@kynovia/integrations`.
+- Hardware credentials and relay URLs must stay in server-side environment variables.
