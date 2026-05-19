@@ -29,6 +29,7 @@ type Invite = {
   id: string;
   invite_type: string;
   max_uses: number;
+  plate: string | null;
   status: string;
   unit_id: string | null;
   use_count: number;
@@ -76,7 +77,9 @@ export default async function InvitesPage({ searchParams }: { searchParams: Sear
           .order("is_primary", { ascending: false }),
         supabase
           .from("access_invites")
-          .select("id, unit_id, visitor_name, invite_type, status, expires_at, max_uses, use_count, created_at")
+          .select(
+            "id, unit_id, visitor_name, plate, invite_type, status, expires_at, max_uses, use_count, created_at"
+          )
           .eq("resident_id", resident.id)
           .order("created_at", { ascending: false })
           .limit(20)
@@ -150,6 +153,10 @@ export default async function InvitesPage({ searchParams }: { searchParams: Sear
             <input name="visitorPhone" placeholder="(11) 99999-0000" />
           </label>
           <label>
+            Placa do visitante
+            <input name="plate" placeholder="ABC1D23" />
+          </label>
+          <label>
             Inicio
             <input name="startsAt" type="datetime-local" />
           </label>
@@ -184,7 +191,7 @@ export default async function InvitesPage({ searchParams }: { searchParams: Sear
               <div>
                 <strong>{invite.visitor_name}</strong>
                 <span>
-                  {invite.invite_type} · {invite.status} · {invite.use_count}/{invite.max_uses} usos · vence{" "}
+                  {invite.invite_type} · {invite.plate ?? "sem placa"} · {invite.status} · {invite.use_count}/{invite.max_uses} entradas · vence{" "}
                   {formatDate(invite.expires_at)}
                 </span>
               </div>

@@ -97,6 +97,11 @@ button,
   color: #0f172a;
 }
 
+button.secondary {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
 .text-link {
   color: #0f766e;
   display: inline-block;
@@ -172,6 +177,12 @@ button,
   margin: 0 0 16px;
 }
 
+.operator-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .result-banner {
   align-items: center;
   border: 1px solid #fecaca;
@@ -224,8 +235,13 @@ button,
 
 @media (max-width: 720px) {
   .operator-header,
+  .operator-grid,
   .list-row,
   .result-banner {
     display: grid;
+  }
+
+  .operator-grid {
+    grid-template-columns: 1fr;
   }
 }

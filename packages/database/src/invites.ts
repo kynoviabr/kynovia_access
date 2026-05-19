@@ -7,7 +7,11 @@ export const inviteValidationResults = [
   "cancelled",
   "not_started",
   "usage_limit_reached",
-  "invalid"
+  "invalid",
+  "blacklisted",
+  "parking_full",
+  "active_stay_exists",
+  "exit_recorded"
 ] as const;
 
 export type InviteStatus = (typeof inviteStatuses)[number];
@@ -49,4 +53,8 @@ export function parseInviteQrPayload(payload: string) {
   }
 
   return { inviteId, token };
+}
+
+export function hasPlateAuthorization(plate: string | null | undefined) {
+  return typeof plate === "string" && plate.trim().length > 0;
 }

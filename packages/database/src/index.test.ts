@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildInviteQrPayload,
   createBrowserSupabaseClient,
+  hasPlateAuthorization,
   isAccessPointKind,
   isInviteStatus,
   isInviteType,
@@ -352,6 +353,57 @@ describe("@kynovia/database", () => {
             reason: "Validacao manual"
           },
           Relationships: []
+        },
+        vehicle_plate_blacklist: {
+          Row: {
+            id: "blacklist_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            plate: "ABC1D23",
+            reason: "Bloqueio operacional",
+            status: "active",
+            created_by: "profile_123",
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            plate: "ABC1D23"
+          },
+          Update: {
+            status: "inactive"
+          },
+          Relationships: []
+        },
+        visitor_vehicle_accesses: {
+          Row: {
+            id: "vehicle_access_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            invite_id: "invite_123",
+            unit_id: "unit_123",
+            plate: "ABC1D23",
+            visitor_name: "Joao Visitante",
+            status: "active",
+            entered_at: "2026-05-18T00:00:00Z",
+            exited_at: null,
+            entry_validated_by: "profile_123",
+            exit_validated_by: null,
+            notes: null,
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            plate: "ABC1D23",
+            visitor_name: "Joao Visitante"
+          },
+          Update: {
+            status: "exited"
+          },
+          Relationships: []
         }
       },
       Views: {},
@@ -395,5 +447,8 @@ describe("@kynovia/database", () => {
     expect(isInviteStatus("pending")).toBe(false);
     expect(isInviteType("recurring")).toBe(true);
     expect(isInviteValidationResult("usage_limit_reached")).toBe(true);
+    expect(isInviteValidationResult("blacklisted")).toBe(true);
+    expect(hasPlateAuthorization("ABC1D23")).toBe(true);
+    expect(hasPlateAuthorization("")).toBe(false);
   });
 });

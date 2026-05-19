@@ -10,6 +10,7 @@ export {
 } from "./condominiums";
 export {
   buildInviteQrPayload,
+  hasPlateAuthorization,
   inviteStatuses,
   inviteTypes,
   inviteValidationResults,

@@ -540,6 +540,96 @@ export type Database = {
         };
         Relationships: [];
       };
+      vehicle_plate_blacklist: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          condominium_id: string;
+          plate: string;
+          reason: string | null;
+          status: string;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          condominium_id: string;
+          plate: string;
+          reason?: string | null;
+          status?: string;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          condominium_id?: string;
+          plate?: string;
+          reason?: string | null;
+          status?: string;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      visitor_vehicle_accesses: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          condominium_id: string;
+          invite_id: string | null;
+          unit_id: string | null;
+          plate: string;
+          visitor_name: string;
+          status: string;
+          entered_at: string;
+          exited_at: string | null;
+          entry_validated_by: string | null;
+          exit_validated_by: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          condominium_id: string;
+          invite_id?: string | null;
+          unit_id?: string | null;
+          plate: string;
+          visitor_name: string;
+          status?: string;
+          entered_at?: string;
+          exited_at?: string | null;
+          entry_validated_by?: string | null;
+          exit_validated_by?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          condominium_id?: string;
+          invite_id?: string | null;
+          unit_id?: string | null;
+          plate?: string;
+          visitor_name?: string;
+          status?: string;
+          entered_at?: string;
+          exited_at?: string | null;
+          entry_validated_by?: string | null;
+          exit_validated_by?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
