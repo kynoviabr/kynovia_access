@@ -37,7 +37,12 @@ This document summarizes the foundation schema created for Kynovia Access.
 
 ## Compliance
 
-- `audit_logs`: immutable audit records for sensitive actions.
+- `audit_logs`: immutable audit records for sensitive actions, operational events, physical
+  commands, permission changes, data exports, security events, and system events.
+- `audit_retention_policies`: tenant-scoped retention rules by audit event type.
+- `audit_log_export_requests`: export workflow requests for audit and access-report data.
+- `audit_log_export_view`: export-safe audit projection that keeps RLS active through
+  `security_invoker = true`.
 
 `audit_logs` blocks update and delete operations with a database trigger.
 
@@ -166,3 +171,21 @@ This supports tenant-wide administration and condominium-level isolation.
 - `@kynovia/access-engine` remains responsible for the final allow, deny, or manual review decision.
 - Facial provider credentials, webhook secrets, and template encryption keys must live in
   server-side environment variables or Supabase Edge Function secrets.
+
+## Phase 14 Audit, Logs, And Compliance Rules
+
+- `audit_logs` is append-only. Updates and deletes are blocked at the database layer.
+- Audit records include event type, source, severity, occurrence timestamp, actor identifiers,
+  entity target, correlation id, retention policy, redaction status, metadata, and optional
+  before/after snapshots.
+- `gate_commands` changes are logged automatically as physical command audit records.
+- `profiles` and `condominium_memberships` role or membership changes are logged automatically as
+  permission-change audit records.
+- Retention policies are modeled in `audit_retention_policies`; deletion automation is intentionally
+  deferred until a reviewed operational job exists.
+- Export requests are tracked in `audit_log_export_requests` and must write only to private storage
+  when implemented.
+- `audit_log_export_view` uses `security_invoker = true` so audit exports do not bypass RLS.
+- Audit metadata must not store service role keys, provider secrets, raw biometric material, or
+  unnecessary personal data.
+- Access reports should preserve tenant, condominium, date-range, and RLS boundaries.

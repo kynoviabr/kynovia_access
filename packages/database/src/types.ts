@@ -690,6 +690,144 @@ export type Database = {
         };
         Relationships: [];
       };
+      audit_logs: {
+        Row: {
+          id: string;
+          tenant_id: string | null;
+          condominium_id: string | null;
+          actor_profile_id: string | null;
+          actor_user_id: string | null;
+          action: string;
+          entity_table: string;
+          entity_id: string | null;
+          event_type: string;
+          source: string;
+          severity: string;
+          occurred_at: string;
+          correlation_id: string | null;
+          retention_policy: string;
+          retention_until: string | null;
+          redaction_status: string;
+          before_state: Json | null;
+          after_state: Json | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id?: string | null;
+          condominium_id?: string | null;
+          actor_profile_id?: string | null;
+          actor_user_id?: string | null;
+          action: string;
+          entity_table: string;
+          entity_id?: string | null;
+          event_type?: string;
+          source?: string;
+          severity?: string;
+          occurred_at?: string;
+          correlation_id?: string | null;
+          retention_policy?: string;
+          retention_until?: string | null;
+          redaction_status?: string;
+          before_state?: Json | null;
+          after_state?: Json | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      audit_retention_policies: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          condominium_id: string | null;
+          event_type: string;
+          retention_days: number;
+          legal_basis: string;
+          status: string;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          condominium_id?: string | null;
+          event_type: string;
+          retention_days: number;
+          legal_basis?: string;
+          status?: string;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          condominium_id?: string | null;
+          event_type?: string;
+          retention_days?: number;
+          legal_basis?: string;
+          status?: string;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      audit_log_export_requests: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          condominium_id: string | null;
+          requested_by: string | null;
+          status: string;
+          format: string;
+          filters: Json;
+          file_path: string | null;
+          exported_at: string | null;
+          expires_at: string | null;
+          failure_reason: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          condominium_id?: string | null;
+          requested_by?: string | null;
+          status?: string;
+          format?: string;
+          filters?: Json;
+          file_path?: string | null;
+          exported_at?: string | null;
+          expires_at?: string | null;
+          failure_reason?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          condominium_id?: string | null;
+          requested_by?: string | null;
+          status?: string;
+          format?: string;
+          filters?: Json;
+          file_path?: string | null;
+          exported_at?: string | null;
+          expires_at?: string | null;
+          failure_reason?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       vehicle_plate_blacklist: {
         Row: {
           id: string;
@@ -883,7 +1021,31 @@ export type Database = {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      audit_log_export_view: {
+        Row: {
+          id: string;
+          tenant_id: string | null;
+          condominium_id: string | null;
+          actor_profile_id: string | null;
+          actor_user_id: string | null;
+          event_type: string;
+          action: string;
+          entity_table: string;
+          entity_id: string | null;
+          source: string;
+          severity: string;
+          occurred_at: string;
+          correlation_id: string | null;
+          retention_policy: string;
+          retention_until: string | null;
+          redaction_status: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Relationships: [];
+      };
+    };
     Functions: Record<string, never>;
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

@@ -27,6 +27,8 @@ The database model is intentionally tenant-aware from the first production-facin
 - `access_events`
 - `gate_commands`
 - `audit_logs`
+- `audit_retention_policies`
+- `audit_log_export_requests`
 
 Every operational table carries `tenant_id` and, when scoped to a property, `condominium_id`.
 
