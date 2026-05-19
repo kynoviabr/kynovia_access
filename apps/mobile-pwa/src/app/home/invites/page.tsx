@@ -1,0 +1,206 @@
+import { buildInviteQrPayload } from "@kynovia/database";
+import Link from "next/link";
+import QRCode from "qrcode";
+import { cancelInviteAction, createInviteAction } from "./actions";
+import { requireAuthorizedProfile } from "../../../lib/auth/session";
+import { createServerSupabaseClient } from "../../../lib/supabase/server";
+
+type SearchParams = Promise<{
+  created?: string;
+  error?: string;
+  status?: string;
+  token?: string;
+}>;
+
+type ResidentUnit = {
+  unit_id: string;
+};
+
+type Unit = {
+  block: string | null;
+  floor: string | null;
+  id: string;
+  number: string;
+};
+
+type Invite = {
+  created_at: string;
+  expires_at: string;
+  id: string;
+  invite_type: string;
+  max_uses: number;
+  status: string;
+  unit_id: string | null;
+  use_count: number;
+  visitor_name: string;
+};
+
+export const dynamic = "force-dynamic";
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+    timeZone: "America/Sao_Paulo"
+  }).format(new Date(value));
+}
+
+function unitLabel(unit: Unit | undefined) {
+  if (!unit) {
+    return "Unidade";
+  }
+
+  return [unit.block, unit.number, unit.floor ? `${unit.floor} andar` : null]
+    .filter(Boolean)
+    .join(" / ");
+}
+
+export default async function InvitesPage({ searchParams }: { searchParams: SearchParams }) {
+  const profile = await requireAuthorizedProfile();
+  const queryParams = await searchParams;
+  const supabase = await createServerSupabaseClient();
+
+  const { data: resident } = await supabase
+    .from("residents")
+    .select("id, condominium_id, status")
+    .eq("profile_id", profile.id)
+    .eq("tenant_id", profile.tenantId)
+    .maybeSingle();
+
+  const [{ data: residentUnitsData }, { data: invitesData }] = resident
+    ? await Promise.all([
+        supabase
+          .from("resident_units")
+          .select("unit_id")
+          .eq("resident_id", resident.id)
+          .order("is_primary", { ascending: false }),
+        supabase
+          .from("access_invites")
+          .select("id, unit_id, visitor_name, invite_type, status, expires_at, max_uses, use_count, created_at")
+          .eq("resident_id", resident.id)
+          .order("created_at", { ascending: false })
+          .limit(20)
+      ])
+    : [{ data: [] }, { data: [] }];
+
+  const residentUnits = (residentUnitsData ?? []) as ResidentUnit[];
+  const unitIds = residentUnits.map((unit) => unit.unit_id);
+  const { data: unitsData } = unitIds.length
+    ? await supabase.from("units").select("id, block, number, floor").in("id", unitIds)
+    : { data: [] };
+  const unitsById = new Map(((unitsData ?? []) as Unit[]).map((unit) => [unit.id, unit]));
+  const invites = (invitesData ?? []) as Invite[];
+  const qrDataUrl =
+    queryParams.created && queryParams.token
+      ? await QRCode.toDataURL(buildInviteQrPayload(queryParams.created, queryParams.token), {
+          errorCorrectionLevel: "M",
+          margin: 1,
+          width: 240
+        })
+      : null;
+
+  return (
+    <main className="mobile-shell">
+      <header className="mobile-header">
+        <div>
+          <p className="eyebrow">Convites digitais</p>
+          <h1>Novo acesso</h1>
+          <p className="muted">Gere convites temporarios para visitantes com validade e limite de uso.</p>
+        </div>
+        <Link className="button-link secondary" href="/home">
+          Voltar
+        </Link>
+      </header>
+
+      {queryParams.status ? <p className="form-success">Operacao concluida: {queryParams.status}</p> : null}
+      {queryParams.error ? <p className="form-error">Nao foi possivel concluir: {queryParams.error}</p> : null}
+      {!resident ? <p className="form-error">Seu perfil ainda nao esta vinculado a um morador ativo.</p> : null}
+      {resident && resident.status !== "active" ? (
+        <p className="form-error">Convites disponiveis apenas para moradores ativos.</p>
+      ) : null}
+
+      {qrDataUrl ? (
+        <section className="app-panel qr-panel">
+          <h2>QR Code temporario</h2>
+          <img alt="QR Code do convite" height={240} src={qrDataUrl} width={240} />
+          <p className="muted">Mostre este codigo na portaria. O token completo aparece apenas nesta confirmacao.</p>
+        </section>
+      ) : null}
+
+      <section className="app-panel">
+        <h2>Criar convite</h2>
+        <form className="auth-form" action={createInviteAction}>
+          <label>
+            Unidade
+            <select name="unitId" required>
+              <option value="">Selecione</option>
+              {residentUnits.map((unit) => (
+                  <option key={unit.unit_id} value={unit.unit_id}>
+                  {unitLabel(unitsById.get(unit.unit_id))}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Visitante
+            <input name="visitorName" required placeholder="Nome do visitante" />
+          </label>
+          <label>
+            Telefone
+            <input name="visitorPhone" placeholder="(11) 99999-0000" />
+          </label>
+          <label>
+            Inicio
+            <input name="startsAt" type="datetime-local" />
+          </label>
+          <label>
+            Validade
+            <input name="expiresAt" required type="datetime-local" />
+          </label>
+          <label>
+            Usos permitidos
+            <input defaultValue="1" min="1" name="maxUses" type="number" />
+          </label>
+          <label>
+            Tipo
+            <select name="inviteType" defaultValue="single">
+              <option value="single">Unico</option>
+              <option value="recurring">Recorrente</option>
+            </select>
+          </label>
+          <label>
+            Regra de recorrencia
+            <input name="recurrenceRule" placeholder="Ex.: semanal, seg-sex" />
+          </label>
+          <button type="submit">Gerar convite</button>
+        </form>
+      </section>
+
+      <section className="app-panel invite-history">
+        <h2>Historico</h2>
+        <div className="list-stack">
+          {invites.map((invite) => (
+            <article className="list-row" key={invite.id}>
+              <div>
+                <strong>{invite.visitor_name}</strong>
+                <span>
+                  {invite.invite_type} · {invite.status} · {invite.use_count}/{invite.max_uses} usos · vence{" "}
+                  {formatDate(invite.expires_at)}
+                </span>
+              </div>
+              {invite.status === "active" && invite.unit_id ? (
+                <form action={cancelInviteAction}>
+                  <input name="inviteId" type="hidden" value={invite.id} />
+                  <input name="unitId" type="hidden" value={invite.unit_id} />
+                  <button className="danger compact-button" type="submit">
+                    Cancelar
+                  </button>
+                </form>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}

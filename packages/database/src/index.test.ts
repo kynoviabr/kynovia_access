@@ -1,15 +1,21 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildInviteQrPayload,
   createBrowserSupabaseClient,
   isAccessPointKind,
+  isInviteStatus,
+  isInviteType,
+  isInviteValidationResult,
   isLikelyBrazilianPlate,
   isResidentStatus,
   isResidentUnitRelationship,
   normalizeBrazilianPlate,
+  normalizeInviteUsageLimit,
   normalizeNullableText,
   normalizePhone,
   normalizeSlug,
   parseJsonObject,
+  parseInviteQrPayload,
   parseNonNegativeInteger
 } from "./index";
 import type { Database } from "./index";
@@ -156,6 +162,7 @@ describe("@kynovia/database", () => {
             document: "123",
             phone: "11999999999",
             email: "maria@example.com",
+            profile_id: "profile_123",
             status: "active",
             block_reason: null,
             blocked_at: null,
@@ -287,6 +294,64 @@ describe("@kynovia/database", () => {
             notes: "Atualizado"
           },
           Relationships: []
+        },
+        access_invites: {
+          Row: {
+            id: "invite_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            unit_id: "unit_123",
+            resident_id: "resident_123",
+            visitor_id: "visitor_123",
+            visitor_name: "Joao Visitante",
+            visitor_phone: "11999999999",
+            plate: null,
+            starts_at: "2026-05-18T00:00:00Z",
+            expires_at: "2026-05-18T23:59:59Z",
+            max_uses: 1,
+            use_count: 0,
+            status: "active",
+            invite_type: "single",
+            recurrence_rule: null,
+            qr_token_hash: "hash",
+            qr_token_expires_at: "2026-05-18T23:59:59Z",
+            cancelled_by: null,
+            cancelled_at: null,
+            metadata: {},
+            created_at: "2026-05-18T00:00:00Z",
+            updated_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            visitor_name: "Joao Visitante",
+            expires_at: "2026-05-18T23:59:59Z"
+          },
+          Update: {
+            status: "cancelled"
+          },
+          Relationships: []
+        },
+        access_invite_validations: {
+          Row: {
+            id: "validation_123",
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            invite_id: "invite_123",
+            validated_by: "profile_123",
+            result: "allowed",
+            reason: null,
+            created_at: "2026-05-18T00:00:00Z"
+          },
+          Insert: {
+            tenant_id: "tenant_123",
+            condominium_id: "condominium_123",
+            result: "allowed"
+          },
+          Update: {
+            reason: "Validacao manual"
+          },
+          Relationships: []
         }
       },
       Views: {},
@@ -316,5 +381,19 @@ describe("@kynovia/database", () => {
     expect(isResidentStatus("blocked")).toBe(true);
     expect(isResidentStatus("pending")).toBe(false);
     expect(isResidentUnitRelationship("owner")).toBe(true);
+  });
+
+  it("normalizes invite and QR inputs", () => {
+    const payload = buildInviteQrPayload("invite_123", "token_456");
+
+    expect(payload).toBe("invite_123.token_456");
+    expect(parseInviteQrPayload(payload)).toEqual({ inviteId: "invite_123", token: "token_456" });
+    expect(parseInviteQrPayload("broken")).toBeNull();
+    expect(normalizeInviteUsageLimit("3")).toBe(3);
+    expect(normalizeInviteUsageLimit("0", 2)).toBe(2);
+    expect(isInviteStatus("active")).toBe(true);
+    expect(isInviteStatus("pending")).toBe(false);
+    expect(isInviteType("recurring")).toBe(true);
+    expect(isInviteValidationResult("usage_limit_reached")).toBe(true);
   });
 });

@@ -15,7 +15,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -75,6 +76,15 @@ input {
   padding: 0 12px;
 }
 
+select {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #111827;
+  min-height: 44px;
+  padding: 0 12px;
+}
+
 button,
 .button-link {
   align-items: center;
@@ -89,6 +99,15 @@ button,
   min-height: 44px;
   padding: 0 16px;
   text-decoration: none;
+}
+
+.button-link.secondary {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+button.danger {
+  background: #b91c1c;
 }
 
 .text-link {
@@ -133,4 +152,82 @@ button,
 .profile-list dd {
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+.mobile-shell {
+  margin: 0 auto;
+  max-width: 860px;
+  padding: 24px;
+}
+
+.mobile-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.mobile-shell .app-panel {
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.mobile-shell h2 {
+  font-size: 1.1rem;
+  margin: 0 0 16px;
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 20px;
+}
+
+.qr-panel {
+  text-align: center;
+}
+
+.qr-panel img {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: inline-block;
+  padding: 12px;
+}
+
+.list-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.list-row {
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.list-row span {
+  color: #64748b;
+  display: block;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.compact-button {
+  min-height: 32px;
+  padding: 0 10px;
+}
+
+@media (max-width: 680px) {
+  .mobile-header,
+  .list-row {
+    display: grid;
+  }
 }

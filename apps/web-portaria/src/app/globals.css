@@ -15,7 +15,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -91,6 +92,11 @@ button,
   text-decoration: none;
 }
 
+.button-link.secondary {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
 .text-link {
   color: #0f766e;
   display: inline-block;
@@ -133,4 +139,93 @@ button,
 .profile-list dd {
   margin: 0;
   overflow-wrap: anywhere;
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 20px;
+}
+
+.operator-shell {
+  margin: 0 auto;
+  max-width: 980px;
+  padding: 32px 24px 56px;
+}
+
+.operator-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.operator-panel {
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.operator-panel h2 {
+  font-size: 1.1rem;
+  margin: 0 0 16px;
+}
+
+.result-banner {
+  align-items: center;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+}
+
+.result-banner.success {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.result-banner.danger {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.list-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.list-row {
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.list-row span {
+  color: #64748b;
+  display: block;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.list-row small {
+  color: #64748b;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .operator-header,
+  .list-row,
+  .result-banner {
+    display: grid;
+  }
 }

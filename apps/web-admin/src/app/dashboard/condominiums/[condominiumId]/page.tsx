@@ -119,6 +119,9 @@ export default async function CondominiumDetailPage({
         <Link className="button-link" href={`/dashboard/condominiums/${condominium.id}/visitors`}>
           Visitantes
         </Link>
+        <Link className="button-link" href={`/dashboard/condominiums/${condominium.id}/invites`}>
+          Convites digitais
+        </Link>
       </section>
 
       <section className="admin-grid two-columns">

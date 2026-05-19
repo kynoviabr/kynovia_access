@@ -1,0 +1,52 @@
+export const inviteStatuses = ["active", "cancelled", "expired", "used"] as const;
+export const inviteTypes = ["single", "recurring"] as const;
+export const inviteValidationResults = [
+  "allowed",
+  "denied",
+  "expired",
+  "cancelled",
+  "not_started",
+  "usage_limit_reached",
+  "invalid"
+] as const;
+
+export type InviteStatus = (typeof inviteStatuses)[number];
+export type InviteType = (typeof inviteTypes)[number];
+export type InviteValidationResult = (typeof inviteValidationResults)[number];
+
+export function isInviteStatus(value: string): value is InviteStatus {
+  return inviteStatuses.includes(value as InviteStatus);
+}
+
+export function isInviteType(value: string): value is InviteType {
+  return inviteTypes.includes(value as InviteType);
+}
+
+export function isInviteValidationResult(value: string): value is InviteValidationResult {
+  return inviteValidationResults.includes(value as InviteValidationResult);
+}
+
+export function normalizeInviteUsageLimit(value: string, fallback = 1) {
+  const parsed = Number.parseInt(value, 10);
+
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+export function buildInviteQrPayload(inviteId: string, token: string) {
+  return `${inviteId}.${token}`;
+}
+
+export function parseInviteQrPayload(payload: string) {
+  const [inviteId, ...tokenParts] = payload.trim().split(".");
+  const token = tokenParts.join(".");
+
+  if (!inviteId || !token) {
+    return null;
+  }
+
+  return { inviteId, token };
+}
