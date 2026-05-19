@@ -37,3 +37,8 @@ supabase/
 ## Decision Records
 
 Architecture Decision Records should be added here as the platform choices become concrete.
+
+## Domain Modules
+
+- [Access Engine](./access-engine.md): pure TypeScript decision contracts and rule ordering for
+  automatic access evaluation.
