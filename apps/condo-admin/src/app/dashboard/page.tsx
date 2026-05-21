@@ -29,6 +29,10 @@ export default async function DashboardPage() {
             <span>Unidades</span>
             <strong>Cadastro operacional de apartamentos, casas, blocos e andares.</strong>
           </Link>
+          <Link className="module-card" href="/dashboard/residents">
+            <span>Moradores</span>
+            <strong>Moradores, vinculos com unidades e veiculos autorizados.</strong>
+          </Link>
         </section>
       ) : (
         <p className="form-error">

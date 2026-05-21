@@ -104,6 +104,8 @@ The first migrated condominium workflow establishes a server-side active condomi
 - `/dashboard`: condominium-scoped landing page.
 - `/dashboard/settings`: basic condominium name, timezone, and visitor parking capacity.
 - `/dashboard/units`: condominium-scoped unit listing, search, create, update, and delete.
+- `/dashboard/residents`: condominium-scoped residents, resident-unit links, and resident
+  vehicles.
 
 This intentionally avoids exposing raw JSON settings to condominium administrators. Advanced
 technical settings remain hidden until they can be represented as explicit, validated controls.
@@ -256,6 +258,7 @@ The first implementation can keep tenant-level checks where the existing schema 
 
 6. **Migrate residents, vehicles, visitors, and invites to Condo Admin**
    - Validate RLS and route guards.
+   - Migrate residents and resident vehicles before visitor and invite workflows.
 
 7. **Migrate gates, suppliers, employees, and occurrences to Condo Admin**
    - Keep gatehouse real-time operation in `web-portaria`.

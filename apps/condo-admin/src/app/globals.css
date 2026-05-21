@@ -15,7 +15,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -66,7 +67,8 @@ label {
   gap: 8px;
 }
 
-input {
+input,
+select {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
@@ -78,6 +80,10 @@ input {
 input[readonly] {
   background: #f1f5f9;
   color: #475569;
+}
+
+select {
+  padding-right: 36px;
 }
 
 button,
@@ -237,6 +243,87 @@ button.secondary,
   grid-template-columns: repeat(3, minmax(90px, 1fr)) auto auto;
 }
 
+.compact-form {
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+}
+
+.record-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.record-subgrid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.record-subgrid h3 {
+  font-size: 1rem;
+  margin: 0 0 12px;
+}
+
+.list-stack,
+.compact-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.compact-stack {
+  margin-top: 12px;
+}
+
+.management-record,
+.nested-row,
+.chip {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.management-record {
+  display: grid;
+  gap: 20px;
+  padding: 18px;
+}
+
+.nested-row,
+.chip {
+  background: #f8fafc;
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.chip {
+  align-items: center;
+  display: inline-flex;
+  max-width: 100%;
+}
+
+.checkbox-label {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.checkbox-label input {
+  min-height: auto;
+  width: auto;
+}
+
+.compact-button {
+  min-height: 34px;
+  padding: 0 10px;
+}
+
 .table-wrap {
   overflow-x: auto;
 }
@@ -269,7 +356,9 @@ th {
 
   .admin-header,
   .filter-form,
-  .inline-form {
+  .inline-form,
+  .record-grid,
+  .record-subgrid {
     align-items: stretch;
     grid-template-columns: 1fr;
   }
