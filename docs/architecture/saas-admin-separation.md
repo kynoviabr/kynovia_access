@@ -76,6 +76,19 @@ The first implementation step creates `apps/kynovia-admin` and `apps/condo-admin
 
 No operational workflows are migrated in this scaffold step. `apps/web-admin` remains intact as the legacy source until each route is moved deliberately.
 
+### Shared UI Extraction Status
+
+The second implementation step extracts repeated admin shell primitives into `@kynovia/ui` for the new separated apps. Shared primitives now cover:
+
+- Auth/app panel layout.
+- Login form shell.
+- Reset password form shell.
+- Access denied shell.
+- Authenticated dashboard shell.
+- Profile summary display.
+
+This extraction keeps app-specific copy, RBAC, routes, and server actions inside each app. It does not migrate existing `apps/web-admin` workflows or introduce new product functionality.
+
 ## Proposed Architecture
 
 ```text
@@ -206,7 +219,8 @@ The first implementation can keep tenant-level checks where the existing schema 
    - Add app shells, scripts, protected dashboard routes, and validation.
 
 3. **Extract shared admin UI primitives**
-   - Move reusable layout/table/form primitives into `@kynovia/ui`.
+   - Move reusable auth/dashboard shell primitives into `@kynovia/ui`.
+   - Keep app-specific copy, routes, RBAC, and server actions in each app.
 
 4. **Migrate SaaS backoffice workflows to Kynovia Admin**
    - Move condominium portfolio/create/support views.
