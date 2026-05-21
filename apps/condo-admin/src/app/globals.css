@@ -75,6 +75,11 @@ input {
   padding: 0 12px;
 }
 
+input[readonly] {
+  background: #f1f5f9;
+  color: #475569;
+}
+
 button,
 .button-link {
   align-items: center;
@@ -145,4 +150,131 @@ button.secondary,
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.admin-shell {
+  min-height: 100vh;
+  padding: 40px;
+}
+
+.admin-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  margin: 0 0 28px;
+}
+
+.admin-header h1 {
+  margin-bottom: 10px;
+}
+
+.quick-actions,
+.admin-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin: 0 0 24px;
+}
+
+.module-card,
+.admin-section,
+.toolbar {
+  background: #ffffff;
+  border: 1px solid #dbe4ef;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.module-card {
+  color: #0f172a;
+  display: grid;
+  gap: 10px;
+  min-height: 112px;
+  padding: 20px;
+  text-decoration: none;
+}
+
+.module-card span {
+  color: #0f766e;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.module-card strong {
+  line-height: 1.45;
+}
+
+.admin-section {
+  padding: 20px;
+}
+
+.admin-section h2 {
+  font-size: 1.15rem;
+  margin: 0 0 12px;
+}
+
+.toolbar {
+  margin: 0 0 20px;
+  padding: 16px;
+}
+
+.filter-form,
+.admin-form,
+.inline-form {
+  display: grid;
+  gap: 12px;
+}
+
+.filter-form {
+  align-items: end;
+  grid-template-columns: minmax(220px, 1fr) auto auto;
+}
+
+.inline-form {
+  align-items: center;
+  grid-template-columns: repeat(3, minmax(90px, 1fr)) auto auto;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  min-width: 680px;
+  width: 100%;
+}
+
+th,
+td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+@media (max-width: 760px) {
+  .admin-shell {
+    padding: 24px;
+  }
+
+  .admin-header,
+  .filter-form,
+  .inline-form {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-header {
+    display: grid;
+  }
 }

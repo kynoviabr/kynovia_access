@@ -96,6 +96,23 @@ This includes listing and creating condominium customer records for onboarding. 
 not migrate operational management of units, gates, residents, visitors, invites, or settings. Those
 remain in `apps/web-admin` until they are moved to `apps/condo-admin` in dedicated PRs.
 
+### Condo Admin Workflow Migration Status
+
+The first migrated condominium workflow establishes a server-side active condominium context in
+`apps/condo-admin` and adds the first customer-facing operational screens:
+
+- `/dashboard`: condominium-scoped landing page.
+- `/dashboard/settings`: basic condominium name, timezone, and visitor parking capacity.
+- `/dashboard/units`: condominium-scoped unit listing, search, create, update, and delete.
+
+This intentionally avoids exposing raw JSON settings to condominium administrators. Advanced
+technical settings remain hidden until they can be represented as explicit, validated controls.
+
+The current context resolution prefers a `condominium_admin` membership when present. For
+`tenant_admin`, it uses the first accessible condominium in the tenant as an interim bridge while
+the product finalizes single-condominium account provisioning and any future multi-condominium
+selector requirements.
+
 ## Proposed Architecture
 
 ```text
@@ -235,6 +252,7 @@ The first implementation can keep tenant-level checks where the existing schema 
 
 5. **Migrate condominium settings and units to Condo Admin**
    - Establish resolved condominium context.
+   - Move basic customer-facing settings and unit CRUD out of the legacy mixed app.
 
 6. **Migrate residents, vehicles, visitors, and invites to Condo Admin**
    - Validate RLS and route guards.
