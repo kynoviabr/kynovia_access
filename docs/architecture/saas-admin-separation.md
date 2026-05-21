@@ -89,6 +89,13 @@ The second implementation step extracts repeated admin shell primitives into `@k
 
 This extraction keeps app-specific copy, RBAC, routes, and server actions inside each app. It does not migrate existing `apps/web-admin` workflows or introduce new product functionality.
 
+### SaaS Backoffice Workflow Migration Status
+
+The first migrated SaaS workflow adds the condominium customer portfolio to `apps/kynovia-admin`.
+This includes listing and creating condominium customer records for onboarding. It intentionally does
+not migrate operational management of units, gates, residents, visitors, invites, or settings. Those
+remain in `apps/web-admin` until they are moved to `apps/condo-admin` in dedicated PRs.
+
 ## Proposed Architecture
 
 ```text
