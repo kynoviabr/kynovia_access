@@ -8,7 +8,12 @@ export const userRoles = [
 
 export type UserRole = (typeof userRoles)[number];
 
-export type AppSurface = "web-admin" | "web-portaria" | "mobile-pwa";
+export type AppSurface =
+  | "web-admin"
+  | "kynovia-admin"
+  | "condo-admin"
+  | "web-portaria"
+  | "mobile-pwa";
 
 export type SessionActor = {
   id: string;
@@ -32,6 +37,8 @@ export type AuthProfile = {
 
 export const appAccessByRole = {
   "web-admin": ["platform_admin", "tenant_admin", "condominium_admin"],
+  "kynovia-admin": ["platform_admin"],
+  "condo-admin": ["tenant_admin", "condominium_admin"],
   "web-portaria": ["platform_admin", "tenant_admin", "condominium_admin", "gatehouse_operator"],
   "mobile-pwa": ["resident", "condominium_admin", "tenant_admin", "platform_admin"]
 } satisfies Record<AppSurface, readonly UserRole[]>;

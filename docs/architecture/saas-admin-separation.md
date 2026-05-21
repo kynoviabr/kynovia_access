@@ -7,7 +7,7 @@ This document defines the architectural refactoring phase required to separate t
 1. **Kynovia Admin**: internal SaaS backoffice used by Kynovia to create, onboard, support, audit, and manage all condominium customers.
 2. **Condo Admin**: customer-facing administrative portal used by each condominium to manage its own operational data.
 
-This is a planning artifact only. It does not move files, change migrations, alter Supabase DEV, or implement new features.
+This document started as a planning artifact and now tracks the migration baseline. It does not authorize broad feature work, migration changes, Supabase DEV changes, or data movement outside focused PRs.
 
 ## Current Diagnosis
 
@@ -61,8 +61,20 @@ Condo Admin must only manage data for the condominium context resolved for the a
 | --- | --- | --- |
 | `apps/kynovia-admin` | Kynovia internal team | SaaS backoffice, onboarding, support, customer lifecycle. |
 | `apps/condo-admin` | Condominium administrators | Customer-facing condominium administration. |
+| `apps/web-admin` | Temporary legacy users | Existing mixed admin functionality until workflows are migrated. |
 | `apps/web-portaria` | Gatehouse operators | Real-time gatehouse operation. |
 | `apps/mobile-pwa` | Residents | Resident mobile/PWA workflows. |
+
+### Scaffold Status
+
+The first implementation step creates `apps/kynovia-admin` and `apps/condo-admin` as separate Next.js app shells. Both apps include:
+
+- TypeScript, Tailwind, Next.js, and pnpm/Turbo-compatible scripts.
+- Supabase SSR session plumbing consistent with the existing apps.
+- Basic login, reset password, access denied, and protected dashboard routes.
+- App-level RBAC through `@kynovia/auth`.
+
+No operational workflows are migrated in this scaffold step. `apps/web-admin` remains intact as the legacy source until each route is moved deliberately.
 
 ## Proposed Architecture
 
@@ -132,6 +144,7 @@ The first implementation can keep tenant-level checks where the existing schema 
 - Create `apps/condo-admin`.
 - Copy only the minimal Next.js app shell, environment contracts, auth guard shape, and build scripts.
 - Keep `apps/web-admin` temporarily as legacy/reference.
+- Use local dev ports `3003` for Kynovia Admin and `3004` for Condo Admin.
 
 ### Step 3: Extract Shared App Shell And UI
 
@@ -187,37 +200,34 @@ The first implementation can keep tenant-level checks where the existing schema 
    - Update agent rules.
    - Create backlog issues.
 
-2. **Scaffold Kynovia Admin app**
+2. **Create separated SaaS admin app shells**
    - Add `apps/kynovia-admin`.
-   - Add app shell, scripts, placeholder routes, and validation.
-
-3. **Scaffold Condo Admin app**
    - Add `apps/condo-admin`.
-   - Add app shell, scripts, placeholder routes, and validation.
+   - Add app shells, scripts, protected dashboard routes, and validation.
 
-4. **Extract shared admin UI primitives**
+3. **Extract shared admin UI primitives**
    - Move reusable layout/table/form primitives into `@kynovia/ui`.
 
-5. **Migrate SaaS backoffice workflows to Kynovia Admin**
+4. **Migrate SaaS backoffice workflows to Kynovia Admin**
    - Move condominium portfolio/create/support views.
    - Keep operational workflows out.
 
-6. **Migrate condominium settings and units to Condo Admin**
+5. **Migrate condominium settings and units to Condo Admin**
    - Establish resolved condominium context.
 
-7. **Migrate residents, vehicles, visitors, and invites to Condo Admin**
+6. **Migrate residents, vehicles, visitors, and invites to Condo Admin**
    - Validate RLS and route guards.
 
-8. **Migrate gates, suppliers, employees, and occurrences to Condo Admin**
+7. **Migrate gates, suppliers, employees, and occurrences to Condo Admin**
    - Keep gatehouse real-time operation in `web-portaria`.
 
-9. **Adjust RBAC and app access guards**
+8. **Adjust RBAC and app access guards**
    - Enforce app-level access by role.
 
-10. **Update deployment docs and Vercel project plan**
+9. **Update deployment docs and Vercel project plan**
     - Document separate Vercel projects for `kynovia-admin` and `condo-admin`.
 
-11. **Retire legacy web-admin**
+10. **Retire legacy web-admin**
     - Remove or redirect `apps/web-admin` after parity validation.
 
 ## Acceptance Criteria For The Refactoring Epic

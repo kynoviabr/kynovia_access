@@ -38,6 +38,10 @@ describe("@kynovia/auth", () => {
 
   it("authorizes users by app surface", () => {
     expect(canAccessApp("tenant_admin", "web-admin")).toBe(true);
+    expect(canAccessApp("platform_admin", "kynovia-admin")).toBe(true);
+    expect(canAccessApp("tenant_admin", "kynovia-admin")).toBe(false);
+    expect(canAccessApp("condominium_admin", "condo-admin")).toBe(true);
+    expect(canAccessApp("platform_admin", "condo-admin")).toBe(false);
     expect(canAccessApp("gatehouse_operator", "web-admin")).toBe(false);
     expect(canAccessApp("resident", "mobile-pwa")).toBe(true);
   });
