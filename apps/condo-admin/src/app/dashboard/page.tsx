@@ -41,6 +41,14 @@ export default async function DashboardPage() {
             <span>Convites</span>
             <strong>Convites recentes, validacoes, vagas e blacklist de placas.</strong>
           </Link>
+          <Link className="module-card" href="/dashboard/gates">
+            <span>Portoes e cancelas</span>
+            <strong>Pontos de acesso configurados e comandos recentes.</strong>
+          </Link>
+          <Link className="module-card" href="/dashboard/occurrences">
+            <span>Ocorrencias</span>
+            <strong>Registro administrativo de eventos operacionais.</strong>
+          </Link>
         </section>
       ) : (
         <p className="form-error">
