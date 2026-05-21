@@ -33,6 +33,14 @@ export default async function DashboardPage() {
             <span>Moradores</span>
             <strong>Moradores, vinculos com unidades e veiculos autorizados.</strong>
           </Link>
+          <Link className="module-card" href="/dashboard/visitors">
+            <span>Visitantes</span>
+            <strong>Cadastro de visitantes, placas e historico por unidade.</strong>
+          </Link>
+          <Link className="module-card" href="/dashboard/invites">
+            <span>Convites</span>
+            <strong>Convites recentes, validacoes, vagas e blacklist de placas.</strong>
+          </Link>
         </section>
       ) : (
         <p className="form-error">
