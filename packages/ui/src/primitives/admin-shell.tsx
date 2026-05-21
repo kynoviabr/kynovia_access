@@ -64,6 +64,7 @@ export type AdminDashboardShellProps = {
   description: ReactNode;
   profile: AdminProfileSummary;
   signOutAction: FormAction;
+  children?: ReactNode;
 };
 
 export function AdminDashboardShell({
@@ -71,11 +72,13 @@ export function AdminDashboardShell({
   title,
   description,
   profile,
-  signOutAction
+  signOutAction,
+  children
 }: AdminDashboardShellProps) {
   return (
     <ShellPanel eyebrow={eyebrow} title={title} description={description}>
       <ProfileSummary profile={profile} />
+      {children}
       <form action={signOutAction} className="shell-actions">
         <button className="secondary" type="submit">
           Sair
