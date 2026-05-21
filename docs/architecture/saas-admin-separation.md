@@ -1,0 +1,230 @@
+# SaaS Admin And Condominium Portal Separation
+
+## Purpose
+
+This document defines the architectural refactoring phase required to separate two domains that are currently mixed inside `apps/web-admin`:
+
+1. **Kynovia Admin**: internal SaaS backoffice used by Kynovia to create, onboard, support, audit, and manage all condominium customers.
+2. **Condo Admin**: customer-facing administrative portal used by each condominium to manage its own operational data.
+
+This is a planning artifact only. It does not move files, change migrations, alter Supabase DEV, or implement new features.
+
+## Current Diagnosis
+
+`apps/web-admin` currently combines SaaS-level and condominium-level responsibilities in one application shell.
+
+### Current Screens And Ownership
+
+| Current path | Current responsibility | Target application | Notes |
+| --- | --- | --- | --- |
+| `/login` | Administrative sign-in | Shared initially, then duplicated/adapted per app | Both apps need auth, but post-login routing and copy must differ. |
+| `/dashboard` | Generic admin landing | Split | Kynovia Admin dashboard should show portfolio/onboarding/support. Condo Admin dashboard should show one condominium operation. |
+| `/dashboard/condominiums` | List/create condominiums | `apps/kynovia-admin` | SaaS-level tenant/customer management. |
+| `/dashboard/condominiums/[condominiumId]` | Condominium settings, units, gates, deletion | Split | Global lifecycle/support belongs to Kynovia Admin. Customer settings, units, and gates belong to Condo Admin. |
+| `/dashboard/condominiums/[condominiumId]/residents` | Residents, resident-unit links, resident vehicles | `apps/condo-admin` | Operational customer data scoped to one condominium. |
+| `/dashboard/condominiums/[condominiumId]/visitors` | Visitor registry, visitor vehicles, visit history | `apps/condo-admin` | Operational customer data scoped to one condominium. |
+| `/dashboard/condominiums/[condominiumId]/invites` | Digital invites | `apps/condo-admin` | Operational customer workflow. |
+| shared actions under `apps/web-admin/src/app/dashboard/condominiums` | Mixed server actions | Split | Actions must move with their domain and keep RLS validation. |
+
+### Backoffice Kynovia Responsibilities
+
+Kynovia Admin should own:
+
+- Customer/tenant portfolio overview.
+- Condominium onboarding and lifecycle.
+- Plan, environment, support, and deployment status.
+- Internal operational audit and support diagnostics.
+- Cross-condominium reporting where allowed by RBAC.
+- Creation of the initial condominium admin user and handoff process.
+- SaaS-level settings and support-only tooling.
+
+Kynovia Admin must not implement detailed operational management for residents, vehicles, visitors, units, portaria flows, or day-to-day condominium workflows except as support read-only views explicitly designed for internal support.
+
+### Condo Admin Responsibilities
+
+Condo Admin should own:
+
+- One-condominium administrative dashboard.
+- Condominium settings visible to the customer.
+- Units and resident-unit links.
+- Residents and resident vehicles.
+- Visitors, suppliers, employees, and recurring access records.
+- Digital invites and QR/plate authorization management.
+- Gates/access points visible to condominium administrators.
+- Occurrences and operational reports relevant to the condominium.
+
+Condo Admin must only manage data for the condominium context resolved for the authenticated user.
+
+### Existing Apps After Separation
+
+| App | Primary user | Responsibility |
+| --- | --- | --- |
+| `apps/kynovia-admin` | Kynovia internal team | SaaS backoffice, onboarding, support, customer lifecycle. |
+| `apps/condo-admin` | Condominium administrators | Customer-facing condominium administration. |
+| `apps/web-portaria` | Gatehouse operators | Real-time gatehouse operation. |
+| `apps/mobile-pwa` | Residents | Resident mobile/PWA workflows. |
+
+## Proposed Architecture
+
+```text
+apps/
+  kynovia-admin/
+    src/app/
+      dashboard/
+      condominiums/
+      onboarding/
+      support/
+      audit/
+      settings/
+
+  condo-admin/
+    src/app/
+      dashboard/
+      settings/
+      units/
+      residents/
+      vehicles/
+      visitors/
+      suppliers/
+      employees/
+      invites/
+      gates/
+      occurrences/
+
+  web-portaria/
+  mobile-pwa/
+```
+
+Shared behavior should remain in packages:
+
+- `@kynovia/auth`: role checks, app access guards, profile resolution, condominium context resolution.
+- `@kynovia/database`: database types, normalization helpers, query helpers.
+- `@kynovia/ui`: shared app shell primitives, tables, badges, forms, cards, dialogs, and drawers.
+- `@kynovia/access-engine`: access decision contracts.
+- `@kynovia/integrations`: provider contracts.
+
+## RBAC Direction
+
+The split should be enforced by both routing and database policies.
+
+| Role | Kynovia Admin | Condo Admin | Portaria | Mobile PWA |
+| --- | --- | --- | --- | --- |
+| `platform_admin` | Full internal access | Support-only if explicitly allowed | No default operational use | No |
+| `tenant_admin` | No default access | Full admin for own condominium/tenant scope | No default portaria use | No |
+| `condominium_admin` | No | Admin for assigned condominium | No default portaria use | No |
+| `gatehouse_operator` | No | No admin workflows | Real-time operation only | No |
+| `resident` | No | No | No | Resident workflows only |
+
+The first implementation can keep tenant-level checks where the existing schema requires it, but the target state for Condo Admin is a resolved `condominium_id` context for every operational screen.
+
+## Migration Plan
+
+### Step 1: Freeze Scope And Add Architecture Documentation
+
+- Document the ownership split.
+- Create backlog issues.
+- Do not move files yet.
+- Do not change migrations.
+
+### Step 2: Scaffold New Apps
+
+- Create `apps/kynovia-admin`.
+- Create `apps/condo-admin`.
+- Copy only the minimal Next.js app shell, environment contracts, auth guard shape, and build scripts.
+- Keep `apps/web-admin` temporarily as legacy/reference.
+
+### Step 3: Extract Shared App Shell And UI
+
+- Move reusable layout primitives to `@kynovia/ui`.
+- Keep app-specific navigation in each app.
+- Avoid cross-app imports from one app into another app.
+
+### Step 4: Migrate Kynovia Backoffice Workflows
+
+- Move condominium portfolio/list/create flows to `apps/kynovia-admin`.
+- Move onboarding/support/audit views to `apps/kynovia-admin`.
+- Restrict write access to `platform_admin`.
+
+### Step 5: Migrate Condo Operational Workflows
+
+- Move settings, units, residents, resident vehicles, visitors, invites, gates, suppliers, employees, and occurrences to `apps/condo-admin`.
+- Resolve the active condominium context server-side.
+- Remove multi-condominium selectors from customer-facing screens unless a user legitimately manages multiple assigned condominiums.
+
+### Step 6: Tighten RBAC And RLS Validation
+
+- Add app-level auth guards for each app.
+- Validate every screen against expected roles.
+- Validate RLS for all operational tables by app/profile.
+- Document any policy gaps before creating migrations.
+
+### Step 7: Retire Or Rename Legacy `apps/web-admin`
+
+- Once both apps are validated, remove or convert `apps/web-admin` into a redirect/reference shell in a dedicated PR.
+- Update Vercel projects and docs.
+
+## Non-Goals For This Phase
+
+- No feature implementation.
+- No migrations.
+- No Supabase DEV changes.
+- No data movement.
+- No production deployment changes.
+- No hardware integration changes.
+
+## Risks
+
+- **RBAC ambiguity**: existing `tenant_admin` behavior may be too broad for single-condominium administration.
+- **Route coupling**: server actions currently live close to nested routes and may need careful extraction.
+- **UI duplication**: duplicating app shells before shared UI primitives are extracted could create drift.
+- **RLS mismatch**: tenant-scoped queries may accidentally remain in Condo Admin screens that should be condominium-scoped.
+- **Deployment drift**: Vercel projects and environment variables must be updated deliberately for new apps.
+
+## Recommended PR Sequence
+
+1. **Plan SaaS admin and condominium portal separation**
+   - Add this document.
+   - Update agent rules.
+   - Create backlog issues.
+
+2. **Scaffold Kynovia Admin app**
+   - Add `apps/kynovia-admin`.
+   - Add app shell, scripts, placeholder routes, and validation.
+
+3. **Scaffold Condo Admin app**
+   - Add `apps/condo-admin`.
+   - Add app shell, scripts, placeholder routes, and validation.
+
+4. **Extract shared admin UI primitives**
+   - Move reusable layout/table/form primitives into `@kynovia/ui`.
+
+5. **Migrate SaaS backoffice workflows to Kynovia Admin**
+   - Move condominium portfolio/create/support views.
+   - Keep operational workflows out.
+
+6. **Migrate condominium settings and units to Condo Admin**
+   - Establish resolved condominium context.
+
+7. **Migrate residents, vehicles, visitors, and invites to Condo Admin**
+   - Validate RLS and route guards.
+
+8. **Migrate gates, suppliers, employees, and occurrences to Condo Admin**
+   - Keep gatehouse real-time operation in `web-portaria`.
+
+9. **Adjust RBAC and app access guards**
+   - Enforce app-level access by role.
+
+10. **Update deployment docs and Vercel project plan**
+    - Document separate Vercel projects for `kynovia-admin` and `condo-admin`.
+
+11. **Retire legacy web-admin**
+    - Remove or redirect `apps/web-admin` after parity validation.
+
+## Acceptance Criteria For The Refactoring Epic
+
+- Kynovia Admin cannot perform detailed operational management as a primary workflow.
+- Condo Admin cannot access multi-condominium SaaS backoffice workflows.
+- Portaria remains focused on real-time gatehouse operation.
+- Mobile PWA remains focused on resident workflows.
+- RLS and app guards are validated for every migrated workflow.
+- No customer-facing app depends on service role keys.
