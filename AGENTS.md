@@ -45,9 +45,20 @@ When trade-offs are necessary, use this order:
 
 ## Apps
 
-- `apps/web-admin`: administrative and management workflows.
+- `apps/kynovia-admin`: future internal Kynovia backoffice for SaaS administration, onboarding, support, and multi-condominium customer lifecycle.
+- `apps/condo-admin`: future customer-facing condominium administration portal for a condominium's own operational data.
+- `apps/web-admin`: legacy administrative app while the split into `apps/kynovia-admin` and `apps/condo-admin` is planned and migrated.
 - `apps/web-portaria`: gatehouse/operator workflows.
 - `apps/mobile-pwa`: mobile-first PWA shell.
+
+## Application Boundaries
+
+- Kynovia Admin must never implement detailed operational condominium management as its primary workflow. It is for internal Kynovia SaaS administration, onboarding, support, lifecycle management, and cross-condominium visibility where RBAC allows it.
+- Condo Admin must manage only data for the authenticated user's own condominium context. It owns customer-facing administration for units, residents, vehicles, visitors, suppliers, employees, invites, gates, occurrences, and condominium settings.
+- Portaria must focus only on real-time gatehouse operation, access validation, access events, occurrences, and operator workflows.
+- Mobile PWA must focus on resident workflows, including resident identity, invites, approvals, and access history.
+- Do not add new operational features to `apps/web-admin` without first deciding whether they belong in `apps/kynovia-admin`, `apps/condo-admin`, `apps/web-portaria`, or `apps/mobile-pwa`.
+- During the migration phase, preserve existing behavior and move workflows in small PRs with validation instead of rewriting everything at once.
 
 ## Packages
 
