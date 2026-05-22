@@ -43,3 +43,11 @@ Phase 16 pilot preparation is documented in `docs/implementation/operational-pil
 
 The pilot package includes a plan, deployment checklist, operational test scripts, acceptance
 matrix, feedback scripts, post-pilot report template, and DEV pilot data guide.
+
+## Vercel Preview
+
+DEV/Preview deployment setup for frontend build, route, and UI validation is documented in
+`docs/implementation/vercel-preview-deploy.md`.
+
+Vercel Preview does not approve operational pilot execution while Supabase DEV migration drift
+remains unresolved.
