@@ -121,6 +121,11 @@ The first migrated condominium workflow establishes a server-side active condomi
 - `/dashboard/visitors`: condominium-scoped visitor registry, visitor plates, and visit history.
 - `/dashboard/invites`: condominium-scoped invite history, validations, visitor parking occupancy,
   and plate blacklist management.
+- `/dashboard/gates`: condominium-scoped access point configuration and recent gate commands.
+- `/dashboard/occurrences`: condominium-scoped administrative occurrence records.
+
+`Funcionarios` and `Fornecedores` remain planned modules because the current versioned database
+schema does not yet include dedicated tables for those domains.
 
 This intentionally avoids exposing raw JSON settings to condominium administrators. Advanced
 technical settings remain hidden until they can be represented as explicit, validated controls.
@@ -278,6 +283,8 @@ The first implementation can keep tenant-level checks where the existing schema 
 
 7. **Migrate gates, suppliers, employees, and occurrences to Condo Admin**
    - Keep gatehouse real-time operation in `web-portaria`.
+   - Migrate gates and occurrences first because they are already represented in the schema.
+   - Add suppliers and employees only after dedicated migrations and RLS are designed.
 
 8. **Adjust RBAC and app access guards**
    - Enforce app-level access by role.
