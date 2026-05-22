@@ -20,6 +20,9 @@ export default async function DashboardPage() {
         <Link className="button-link" href="/dashboard/condominiums">
           Gerenciar condominios
         </Link>
+        <Link className="button-link secondary" href="/dashboard/finance">
+          Financeiro dos clientes
+        </Link>
       </div>
     </AdminDashboardShell>
   );

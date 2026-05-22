@@ -1,25 +1,80 @@
 import Link from "next/link";
-import { createCondominiumAction } from "./actions";
+import { CondominiumSelector } from "./CondominiumSelector";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
 type SearchParams = Promise<{
   created?: string;
   error?: string;
-  q?: string;
   status?: string;
-  timezone?: string;
 }>;
+
+type CondominiumSummary = {
+  id: string;
+  metadata: unknown;
+  name: string;
+};
+
+type FinanceSummary = {
+  access_status?: string | null;
+  billing_status?: string | null;
+  blocked?: boolean | null;
+  blocked_reason?: string | null;
+  inactive_reason?: string | null;
+};
+
+type CondominiumFinanceSummary = CondominiumSummary & {
+  finance: FinanceSummary;
+};
 
 export const dynamic = "force-dynamic";
 
-function sanitizeSearch(value: string) {
-  return value.replace(/[%,]/g, "").trim();
+function financeFromMetadata(metadata: unknown) {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return {};
+  }
+
+  const finance = (metadata as { finance?: unknown }).finance;
+  return finance && typeof finance === "object" && !Array.isArray(finance)
+    ? (finance as FinanceSummary)
+    : {};
+}
+
+function accessStatusLabel(finance: FinanceSummary) {
+  if (isInactiveClient(finance)) {
+    return "Inativo";
+  }
+
+  return "Ativo";
+}
+
+function statusReason(finance: FinanceSummary) {
+  if (finance.billing_status === "overdue") {
+    return finance.blocked_reason ?? "Pagamento em atraso.";
+  }
+
+  return finance.blocked_reason ?? finance.inactive_reason ?? "Sem motivo informado.";
+}
+
+function isInactiveClient(finance: FinanceSummary) {
+  return finance.blocked === true || finance.access_status === "inactive" || finance.billing_status === "overdue";
 }
 
 function statusMessage(status?: string) {
   if (status === "condominium_created") {
     return "Condominio criado para implantacao.";
+  }
+
+  if (status === "admin_created" || status === "admin_created_email_sent") {
+    return "Acesso do administrador do condominio criado e e-mail enviado ao cliente.";
+  }
+
+  if (status === "admin_created_email_not_configured") {
+    return "Acesso do administrador criado. Configure EMAIL_PROVIDER=resend, EMAIL_FROM e RESEND_API_KEY para enviar e-mail automaticamente.";
+  }
+
+  if (status === "admin_created_email_failed") {
+    return "Acesso do administrador criado, mas o envio do e-mail falhou. Confira a configuracao do provedor de e-mail.";
   }
 
   return status ? `Operacao concluida: ${status}` : null;
@@ -38,31 +93,61 @@ function errorMessage(error?: string) {
     return "Nao foi possivel criar o condominio.";
   }
 
+  if (error === "invalid_client_fields") {
+    return "Preencha CNPJ, e-mail, telefone, endereco, UF, CEP e timezone em formato valido.";
+  }
+
+  if (error === "duplicate_cnpj") {
+    return "Ja existe um condominio cliente cadastrado com este CNPJ.";
+  }
+
+  if (error === "service_role_missing") {
+    return "Configure SUPABASE_SERVICE_ROLE_KEY no servidor para criar usuarios de clientes.";
+  }
+
+  if (error === "missing_admin_fields") {
+    return "Informe condominio, nome, e-mail e senha temporaria do administrador.";
+  }
+
+  if (error === "invalid_admin_credentials") {
+    return "Informe um e-mail valido e uma senha temporaria com pelo menos 10 caracteres.";
+  }
+
+  if (error === "condominium_not_found") {
+    return "Condominio nao encontrado para o tenant atual.";
+  }
+
+  if (error === "create_admin_auth_failed") {
+    return "Nao foi possivel criar o usuario de acesso. Verifique se o e-mail ja existe.";
+  }
+
+  if (error === "create_admin_profile_failed") {
+    return "Usuario criado, mas nao foi possivel criar o perfil do administrador.";
+  }
+
+  if (error === "create_admin_membership_failed") {
+    return "Perfil criado, mas nao foi possivel vincular o administrador ao condominio.";
+  }
+
   return error ? `Nao foi possivel concluir: ${error}` : null;
 }
 
 export default async function CondominiumsPage({ searchParams }: { searchParams: SearchParams }) {
   const profile = await requireAuthorizedProfile();
   const params = await searchParams;
-  const q = params.q?.trim() ?? "";
-  const filterQ = sanitizeSearch(q);
-  const timezone = params.timezone?.trim() ?? "";
   const supabase = await createServerSupabaseClient();
-  let query = supabase
+  const { data: condominiums, error } = await supabase
     .from("condominiums")
-    .select("id, name, slug, timezone, visitor_parking_capacity, created_at")
+    .select("id, name, metadata")
     .eq("tenant_id", profile.tenantId)
     .order("name", { ascending: true });
 
-  if (filterQ) {
-    query = query.or(`name.ilike.%${filterQ}%,slug.ilike.%${filterQ}%`);
-  }
-
-  if (timezone) {
-    query = query.eq("timezone", timezone);
-  }
-
-  const { data: condominiums, error } = await query;
+  const summaries: CondominiumFinanceSummary[] = ((condominiums ?? []) as CondominiumSummary[]).map((condominium) => ({
+    ...condominium,
+    finance: financeFromMetadata(condominium.metadata)
+  }));
+  const inactiveClients = summaries.filter((condominium) => isInactiveClient(condominium.finance));
+  const activeClientItems = summaries.filter((condominium) => !isInactiveClient(condominium.finance));
   const success = statusMessage(params.status);
   const failure = errorMessage(params.error);
 
@@ -77,9 +162,17 @@ export default async function CondominiumsPage({ searchParams }: { searchParams:
             operacional detalhada fica fora deste app.
           </p>
         </div>
-        <Link className="button-link secondary" href="/dashboard">
-          Voltar
-        </Link>
+        <div className="shell-actions">
+          <Link className="button-link" href="/dashboard/condominiums/new">
+            Novo cliente
+          </Link>
+          <Link className="button-link secondary" href="/dashboard/finance">
+            Financeiro
+          </Link>
+          <Link className="button-link secondary" href="/dashboard">
+            Voltar
+          </Link>
+        </div>
       </header>
 
       {success ? <p className="form-success">{success}</p> : null}
@@ -87,73 +180,63 @@ export default async function CondominiumsPage({ searchParams }: { searchParams:
       {error ? <p className="form-error">Falha ao carregar condominios.</p> : null}
 
       <section className="toolbar">
-        <form className="filter-form">
-          <label>
-            Buscar
-            <input name="q" placeholder="Nome ou slug" defaultValue={q} />
-          </label>
-          <label>
-            Timezone
-            <input name="timezone" placeholder="America/Sao_Paulo" defaultValue={timezone} />
-          </label>
-          <button type="submit">Filtrar</button>
-          <Link className="button-link secondary" href="/dashboard/condominiums">
-            Limpar
-          </Link>
-        </form>
+        <CondominiumSelector condominiums={condominiums ?? []} />
       </section>
 
-      <section className="admin-grid">
+      <section className="finance-dashboard">
+        <div className="metric-card">
+          <span>Total de clientes</span>
+          <strong>{summaries.length}</strong>
+        </div>
+        <div className="metric-card">
+          <span>Clientes ativos</span>
+          <strong>{activeClientItems.length}</strong>
+        </div>
+        <div className="metric-card">
+          <span>Clientes inativos</span>
+          <strong>{inactiveClients.length}</strong>
+        </div>
+      </section>
+
+      <section className="financial-overview-grid">
         <div className="admin-section">
-          <h2>Condominios cadastrados</h2>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nome</th>
-                  <th>Slug</th>
-                  <th>Timezone</th>
-                  <th>Vagas visitantes</th>
-                  <th>Criado em</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(condominiums ?? []).map((condominium) => (
-                  <tr key={condominium.id}>
-                    <td>{condominium.name}</td>
-                    <td>{condominium.slug}</td>
-                    <td>{condominium.timezone}</td>
-                    <td>{condominium.visitor_parking_capacity}</td>
-                    <td>{new Date(condominium.created_at).toLocaleDateString("pt-BR")}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <h2>Clientes ativos</h2>
+          <div className="admin-list">
+            {activeClientItems.length ? (
+              activeClientItems.map((condominium) => (
+                <Link
+                  className="financial-client-link financial-client-link-ok"
+                  href={`/dashboard/condominiums/${condominium.id}`}
+                  key={condominium.id}
+                >
+                  <strong>{condominium.name}</strong>
+                  <span>{accessStatusLabel(condominium.finance)}</span>
+                </Link>
+              ))
+            ) : (
+              <p className="muted">Nenhum cliente ativo encontrado.</p>
+            )}
           </div>
-          {!condominiums?.length ? <p className="muted">Nenhum condominio encontrado.</p> : null}
         </div>
 
-        <div className="admin-section">
-          <h2>Novo condominio cliente</h2>
-          <p className="muted">
-            Cria o registro base para implantacao. Configuracoes operacionais serao tratadas no
-            Condo Admin em PRs futuros.
-          </p>
-          <form className="admin-form" action={createCondominiumAction}>
-            <label>
-              Nome
-              <input name="name" required placeholder="Residencial Aurora" />
-            </label>
-            <label>
-              Slug
-              <input name="slug" placeholder="residencial-aurora" />
-            </label>
-            <label>
-              Timezone
-              <input name="timezone" defaultValue="America/Sao_Paulo" />
-            </label>
-            <button type="submit">Criar condominio</button>
-          </form>
+        <div className="admin-section finance-alert-section">
+          <h2>Clientes inativos</h2>
+          <div className="admin-list">
+            {inactiveClients.length ? (
+              inactiveClients.map((condominium) => (
+                <Link
+                  className="financial-client-link"
+                  href={`/dashboard/finance/${condominium.id}`}
+                  key={condominium.id}
+                >
+                  <strong>{condominium.name}</strong>
+                  <span>{statusReason(condominium.finance)}</span>
+                </Link>
+              ))
+            ) : (
+              <p className="muted">Nenhum cliente inativo encontrado.</p>
+            )}
+          </div>
         </div>
       </section>
     </main>
