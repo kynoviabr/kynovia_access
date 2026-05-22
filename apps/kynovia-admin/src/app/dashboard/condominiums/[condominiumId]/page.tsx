@@ -235,7 +235,7 @@ export default async function CondominiumDetailPage({
         </section>
 
         <section className="admin-section">
-          <h2>Metadados do Contrato</h2>
+          <h2>Dados do Contrato</h2>
           <ContractMetadataFields
             documentsStatus={contract.documents_status ?? "pending"}
             expiresAt={contract.expires_at ?? ""}

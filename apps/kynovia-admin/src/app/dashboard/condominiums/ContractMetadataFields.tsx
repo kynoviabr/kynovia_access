@@ -1,3 +1,4 @@
+import { ContractUploadField } from "./ContractUploadField";
 import { RequiredLabel } from "./ClientRegistrationFields";
 
 type ContractMetadataFieldsProps = {
@@ -45,6 +46,7 @@ export function ContractMetadataFields({
           </select>
         </label>
       </div>
+      <ContractUploadField />
     </>
   );
 }

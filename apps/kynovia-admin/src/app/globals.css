@@ -120,21 +120,31 @@ button.danger {
 }
 
 .form-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
   color: #b91c1c;
   font-size: 0.9rem;
-  margin: 0;
+  margin: 0 0 16px;
+  padding: 12px 14px;
 }
 
 .field-error {
+  display: block;
   color: #b91c1c;
   font-size: 0.78rem;
   font-weight: 700;
+  min-height: 18px;
 }
 
 .form-success {
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
   color: #047857;
   font-size: 0.9rem;
-  margin: 0;
+  margin: 0 0 16px;
+  padding: 12px 14px;
 }
 
 .profile-list {
@@ -485,23 +495,29 @@ button.danger {
 }
 
 .admin-section {
-  padding: 20px;
+  padding: 24px;
 }
 
 .admin-section h2 {
-  font-size: 1.1rem;
-  margin: 0 0 16px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 1.18rem;
+  margin: 0 0 18px;
+  padding-bottom: 12px;
 }
 
 .admin-form,
 .filter-form {
   display: grid;
-  gap: 12px;
+  gap: 18px;
+}
+
+.admin-form label {
+  gap: 9px;
 }
 
 .form-row {
   display: grid;
-  gap: 12px;
+  gap: 18px;
   grid-template-columns: minmax(0, 1fr) 84px minmax(0, 0.8fr);
 }
 
@@ -512,21 +528,21 @@ button.danger {
 .compact-address-row {
   align-items: end;
   display: flex;
-  gap: 16px;
+  gap: 18px;
   grid-template-columns: none;
 }
 
 .cnpj-cep-row {
   align-items: start;
   display: flex;
-  gap: 16px;
+  gap: 18px;
   grid-template-columns: none;
 }
 
 .email-phone-row {
   align-items: end;
   display: flex;
-  gap: 16px;
+  gap: 18px;
   grid-template-columns: none;
 }
 
@@ -560,7 +576,7 @@ button.danger {
 .address-number-row {
   align-items: end;
   display: flex;
-  gap: 16px;
+  gap: 18px;
   grid-template-columns: none !important;
 }
 
@@ -568,8 +584,47 @@ button.danger {
 .payment-row {
   align-items: end;
   display: flex;
-  gap: 16px;
+  gap: 18px;
   grid-template-columns: none;
+}
+
+.contract-upload-field {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.contract-upload-field input[type="file"] {
+  align-items: center;
+  background: #ffffff;
+  border-style: solid;
+  display: flex;
+  padding: 10px 12px;
+}
+
+.selected-file-card {
+  align-items: center;
+  background: #ecfdf5;
+  border: 1px solid #99f6e4;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.selected-file-card span,
+.input-help {
+  color: #64748b;
+  font-size: 0.84rem;
+}
+
+.input-help {
+  line-height: 1.5;
+  margin: 0;
 }
 
 .finance-status-row label,
@@ -702,6 +757,7 @@ th {
   }
 
   .address-number-row {
+    flex-wrap: wrap;
     grid-template-columns: none !important;
   }
 
@@ -710,14 +766,17 @@ th {
   }
 
   .compact-address-row {
+    flex-wrap: wrap;
     grid-template-columns: none;
   }
 
   .cnpj-cep-row {
+    flex-wrap: wrap;
     grid-template-columns: none;
   }
 
   .email-phone-row {
+    flex-wrap: wrap;
     grid-template-columns: none;
   }
 
