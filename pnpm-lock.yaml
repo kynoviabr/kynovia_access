@@ -42,6 +42,74 @@ importers:
         specifier: ^4.1.6
         version: 4.1.6(@types/node@22.19.19)(@vitest/coverage-v8@4.1.6)(vite@8.0.13(@types/node@22.19.19)(jiti@1.21.7))
 
+  apps/condo-admin:
+    dependencies:
+      '@kynovia/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@kynovia/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@kynovia/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@supabase/ssr':
+        specifier: ^0.7.0
+        version: 0.7.0(@supabase/supabase-js@2.106.0)
+      next:
+        specifier: ^15.3.2
+        version: 15.5.18(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.2.6(react@19.2.6)
+    devDependencies:
+      autoprefixer:
+        specifier: ^10.4.21
+        version: 10.5.0(postcss@8.5.14)
+      postcss:
+        specifier: ^8.5.3
+        version: 8.5.14
+      tailwindcss:
+        specifier: ^3.4.17
+        version: 3.4.19
+
+  apps/kynovia-admin:
+    dependencies:
+      '@kynovia/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@kynovia/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@kynovia/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@supabase/ssr':
+        specifier: ^0.7.0
+        version: 0.7.0(@supabase/supabase-js@2.106.0)
+      next:
+        specifier: ^15.3.2
+        version: 15.5.18(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      react:
+        specifier: ^19.1.0
+        version: 19.2.6
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.2.6(react@19.2.6)
+    devDependencies:
+      autoprefixer:
+        specifier: ^10.4.21
+        version: 10.5.0(postcss@8.5.14)
+      postcss:
+        specifier: ^8.5.3
+        version: 8.5.14
+      tailwindcss:
+        specifier: ^3.4.17
+        version: 3.4.19
+
   apps/mobile-pwa:
     dependencies:
       '@kynovia/access-engine':
