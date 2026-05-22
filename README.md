@@ -1,6 +1,6 @@
 # Kynovia Access
 
-Kynovia Access is a SaaS platform for multi-condominium access control operations. The project is organized as a TypeScript monorepo with separate applications for administration, gatehouse operations, and mobile/PWA experiences.
+Kynovia Access is a SaaS platform for multi-condominium access control operations. The project is organized as a TypeScript monorepo with separate applications for Kynovia SaaS backoffice, condominium administration, gatehouse operations, and mobile/PWA experiences.
 
 ## Stack
 
@@ -16,7 +16,9 @@ Kynovia Access is a SaaS platform for multi-condominium access control operation
 
 ```txt
 apps/
-  web-admin/       Admin dashboard for operators and condominium managers
+  kynovia-admin/   Internal Kynovia SaaS backoffice shell
+  condo-admin/     Condominium customer administration shell
+  web-admin/       Legacy admin app kept during migration
   web-portaria/    Gatehouse web app for access desk workflows
   mobile-pwa/      Mobile-first PWA shell
 packages/
@@ -78,4 +80,4 @@ Deployment credentials are intentionally not committed. Configure the variables 
 
 ## Current Scope
 
-This initial structure contains only platform scaffolding. Product features, authentication flows, access workflows, and integrations will be implemented in later changes.
+`apps/kynovia-admin` and `apps/condo-admin` currently contain only authenticated app shells. Existing admin functionality remains in `apps/web-admin` until each workflow is migrated in a focused PR.
