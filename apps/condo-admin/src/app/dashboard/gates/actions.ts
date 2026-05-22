@@ -12,7 +12,7 @@ function formValue(formData: FormData, key: string) {
 }
 
 function requireCondoManager(role: string) {
-  if (!["tenant_admin", "condominium_admin", "syndic", "manager", "doorman_supervisor"].includes(role)) {
+  if (!["condominium_admin", "syndic", "manager", "doorman_supervisor"].includes(role)) {
     redirect("/dashboard?error=insufficient_role");
   }
 }

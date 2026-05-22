@@ -43,7 +43,6 @@ export const appAccessByRole = {
   "web-admin": ["platform_admin", "tenant_admin", "condominium_admin"],
   "kynovia-admin": ["platform_admin"],
   "condo-admin": [
-    "tenant_admin",
     "condominium_admin",
     "syndic",
     "manager",

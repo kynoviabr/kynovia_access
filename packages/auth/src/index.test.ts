@@ -49,6 +49,7 @@ describe("@kynovia/auth", () => {
     expect(canAccessApp("manager", "condo-admin")).toBe(true);
     expect(canAccessApp("doorman_supervisor", "condo-admin")).toBe(true);
     expect(canAccessApp("resident_manager", "condo-admin")).toBe(true);
+    expect(canAccessApp("tenant_admin", "condo-admin")).toBe(false);
     expect(canAccessApp("platform_admin", "condo-admin")).toBe(false);
     expect(canAccessApp("gatehouse_operator", "web-admin")).toBe(false);
     expect(canAccessApp("resident", "mobile-pwa")).toBe(true);

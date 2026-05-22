@@ -11,7 +11,7 @@ function formValue(formData: FormData, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-const settingsManagerRoles = ["tenant_admin", "condominium_admin", "syndic", "manager"];
+const settingsManagerRoles = ["condominium_admin", "syndic", "manager"];
 const unitManagerRoles = [...settingsManagerRoles, "resident_manager"];
 
 function requireCondoManager(role: string, allowedRoles: string[]) {
