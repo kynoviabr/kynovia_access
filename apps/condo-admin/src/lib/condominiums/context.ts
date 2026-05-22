@@ -23,6 +23,14 @@ type CondominiumRow = {
   visitor_parking_capacity: number;
 };
 
+const condoAdminMembershipRoles = [
+  "condominium_admin",
+  "syndic",
+  "manager",
+  "doorman_supervisor",
+  "resident_manager"
+];
+
 function mapCondominium(row: CondominiumRow): ActiveCondominium {
   return {
     id: row.id,
@@ -43,13 +51,13 @@ export async function getCondoAdminContext(): Promise<CondoAdminContext | null> 
   const supabase = await createServerSupabaseClient();
   let condominiumId: string | null = null;
 
-  if (profile.role === "condominium_admin") {
+  if (condoAdminMembershipRoles.includes(profile.role)) {
     const { data: membership } = await supabase
       .from("condominium_memberships")
       .select("condominium_id")
       .eq("profile_id", profile.id)
       .eq("tenant_id", profile.tenantId)
-      .eq("role", "condominium_admin")
+      .in("role", condoAdminMembershipRoles)
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();

@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { disablePlateBlacklistAction, upsertPlateBlacklistAction } from "./actions";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
+import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
 type Invite = {
@@ -97,12 +97,8 @@ export default async function CondominiumInvitesPage({
   searchParams: SearchParams;
 }) {
   await requireAuthorizedProfile();
-  const context = await getCondoAdminContext();
+  const context = requireOperationalModuleAccess(await getCondoAdminContext(), "invites");
   const queryParams = await searchParams;
-
-  if (!context?.condominium) {
-    redirect("/dashboard?error=missing_condominium_context");
-  }
 
   const { condominium } = context;
   const supabase = await createServerSupabaseClient();

@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { createUnitAction, deleteUnitAction, updateUnitAction } from "../actions";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
+import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
 type SearchParams = Promise<{
@@ -62,12 +62,8 @@ function errorMessage(status?: string) {
 
 export default async function UnitsPage({ searchParams }: { searchParams: SearchParams }) {
   await requireAuthorizedProfile();
-  const context = await getCondoAdminContext();
+  const context = requireOperationalModuleAccess(await getCondoAdminContext(), "units");
   const params = await searchParams;
-
-  if (!context?.condominium) {
-    redirect("/dashboard?error=missing_condominium_context");
-  }
 
   const { condominium } = context;
   const q = params.q?.trim() ?? "";

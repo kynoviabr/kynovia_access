@@ -1,6 +1,5 @@
 import { residentStatuses, residentUnitRelationships } from "@kynovia/database";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   createResidentAction,
   createResidentVehicleAction,
@@ -13,6 +12,7 @@ import {
 } from "./actions";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
+import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
 type SearchParams = Promise<{ q?: string; status?: string }>;
@@ -120,12 +120,8 @@ function errorMessage(status?: string) {
 
 export default async function ResidentsPage({ searchParams }: { searchParams: SearchParams }) {
   await requireAuthorizedProfile();
-  const context = await getCondoAdminContext();
+  const context = requireOperationalModuleAccess(await getCondoAdminContext(), "residents");
   const queryParams = await searchParams;
-
-  if (!context?.condominium) {
-    redirect("/dashboard?error=missing_condominium_context");
-  }
 
   const { condominium } = context;
   const searchTerm = queryParams.q?.trim() ?? "";

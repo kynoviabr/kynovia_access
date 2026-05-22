@@ -1,6 +1,5 @@
 import { accessPointKinds } from "@kynovia/database";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   createAccessPointAction,
   deleteAccessPointAction,
@@ -8,6 +7,7 @@ import {
 } from "./actions";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
+import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
 type SearchParams = Promise<{ status?: string }>;
@@ -70,12 +70,8 @@ function formatDate(value: string, timeZone: string) {
 
 export default async function GatesPage({ searchParams }: { searchParams: SearchParams }) {
   await requireAuthorizedProfile();
-  const context = await getCondoAdminContext();
+  const context = requireOperationalModuleAccess(await getCondoAdminContext(), "gates");
   const queryParams = await searchParams;
-
-  if (!context?.condominium) {
-    redirect("/dashboard?error=missing_condominium_context");
-  }
 
   const { condominium } = context;
   const supabase = await createServerSupabaseClient();
