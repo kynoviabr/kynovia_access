@@ -96,6 +96,18 @@ This includes listing and creating condominium customer records for onboarding. 
 not migrate operational management of units, gates, residents, visitors, invites, or settings. Those
 remain in `apps/web-admin` until they are moved to `apps/condo-admin` in dedicated PRs.
 
+The Kynovia Admin customer area is now split into explicit SaaS responsibilities:
+
+- `/dashboard/condominiums`: customer portfolio and navigation to existing customer records.
+- `/dashboard/condominiums/new`: new customer onboarding and creation of the first condominium administrator.
+- `/dashboard/condominiums/[condominiumId]`: customer registration data and administrator access management only.
+- `/dashboard/finance`: SaaS financial dashboard for active/inactive customers, total received, and payment totals by customer.
+- `/dashboard/finance/[condominiumId]`: customer financial controls, payment registration, charge channel, and access blocking/unblocking.
+
+Customer registration and administrator management must not contain financial forms. Financial
+status, payment history, charge handling, and access blocking must stay in the finance area so
+commercial/customer administration and billing operations remain independently navigable.
+
 ### Condo Admin Workflow Migration Status
 
 The first migrated condominium workflow establishes a server-side active condominium context in
