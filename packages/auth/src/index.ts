@@ -2,6 +2,10 @@ export const userRoles = [
   "platform_admin",
   "tenant_admin",
   "condominium_admin",
+  "syndic",
+  "manager",
+  "doorman_supervisor",
+  "resident_manager",
   "gatehouse_operator",
   "resident"
 ] as const;
@@ -38,7 +42,14 @@ export type AuthProfile = {
 export const appAccessByRole = {
   "web-admin": ["platform_admin", "tenant_admin", "condominium_admin"],
   "kynovia-admin": ["platform_admin"],
-  "condo-admin": ["tenant_admin", "condominium_admin"],
+  "condo-admin": [
+    "tenant_admin",
+    "condominium_admin",
+    "syndic",
+    "manager",
+    "doorman_supervisor",
+    "resident_manager"
+  ],
   "web-portaria": ["platform_admin", "tenant_admin", "condominium_admin", "gatehouse_operator"],
   "mobile-pwa": ["resident", "condominium_admin", "tenant_admin", "platform_admin"]
 } satisfies Record<AppSurface, readonly UserRole[]>;

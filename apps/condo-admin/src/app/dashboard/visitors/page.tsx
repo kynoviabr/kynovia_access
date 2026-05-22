@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   createVisitorAction,
   createVisitorUnitVisitAction,
@@ -10,6 +9,7 @@ import {
 } from "./actions";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
+import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
 type SearchParams = Promise<{ q?: string; status?: string; unit?: string }>;
@@ -100,12 +100,8 @@ function errorMessage(status?: string) {
 
 export default async function VisitorsPage({ searchParams }: { searchParams: SearchParams }) {
   await requireAuthorizedProfile();
-  const context = await getCondoAdminContext();
+  const context = requireOperationalModuleAccess(await getCondoAdminContext(), "visitors");
   const queryParams = await searchParams;
-
-  if (!context?.condominium) {
-    redirect("/dashboard?error=missing_condominium_context");
-  }
 
   const { condominium } = context;
   const searchTerm = queryParams.q?.trim() ?? "";

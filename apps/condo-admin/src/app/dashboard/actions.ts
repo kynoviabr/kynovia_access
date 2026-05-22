@@ -11,8 +11,11 @@ function formValue(formData: FormData, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function requireCondoManager(role: string) {
-  if (!["tenant_admin", "condominium_admin"].includes(role)) {
+const settingsManagerRoles = ["tenant_admin", "condominium_admin", "syndic", "manager"];
+const unitManagerRoles = [...settingsManagerRoles, "resident_manager"];
+
+function requireCondoManager(role: string, allowedRoles: string[]) {
+  if (!allowedRoles.includes(role)) {
     redirect("/dashboard?error=insufficient_role");
   }
 }
@@ -33,9 +36,9 @@ function redirectToUnits(status: string) {
   redirect(`/dashboard/units?status=${status}`);
 }
 
-async function ensureCondominiumAccess(condominiumId: string) {
+async function ensureCondominiumAccess(condominiumId: string, allowedRoles: string[]) {
   const profile = await requireAuthorizedProfile();
-  requireCondoManager(profile.role);
+  requireCondoManager(profile.role, allowedRoles);
 
   const supabase = await createServerSupabaseClient();
   const { data: condominium } = await supabase
@@ -61,7 +64,10 @@ export async function updateCondominiumAction(formData: FormData) {
     redirectToSettings("missing_condominium_fields");
   }
 
-  const { profile, supabase } = await ensureCondominiumAccess(condominiumId);
+  const { profile, supabase } = await ensureCondominiumAccess(
+    condominiumId,
+    settingsManagerRoles
+  );
   const { error } = await supabase
     .from("condominiums")
     .update({ name, timezone })
@@ -85,7 +91,10 @@ export async function updateOperationalSettingsAction(formData: FormData) {
     redirectToSettings("missing_condominium_id");
   }
 
-  const { profile, supabase } = await ensureCondominiumAccess(condominiumId);
+  const { profile, supabase } = await ensureCondominiumAccess(
+    condominiumId,
+    settingsManagerRoles
+  );
   const { error } = await supabase
     .from("condominiums")
     .update({ visitor_parking_capacity: visitorParkingCapacity })
@@ -107,7 +116,7 @@ export async function createUnitAction(formData: FormData) {
     redirectToUnits("missing_unit_fields");
   }
 
-  const { profile, supabase } = await ensureCondominiumAccess(condominiumId);
+  const { profile, supabase } = await ensureCondominiumAccess(condominiumId, unitManagerRoles);
   const { error } = await supabase.from("units").insert({
     tenant_id: profile.tenantId,
     condominium_id: condominiumId,
@@ -132,7 +141,7 @@ export async function updateUnitAction(formData: FormData) {
     redirectToUnits("missing_unit_fields");
   }
 
-  const { supabase } = await ensureCondominiumAccess(condominiumId);
+  const { supabase } = await ensureCondominiumAccess(condominiumId, unitManagerRoles);
   const { error } = await supabase
     .from("units")
     .update({
@@ -158,7 +167,7 @@ export async function deleteUnitAction(formData: FormData) {
     redirectToUnits("missing_unit_id");
   }
 
-  const { supabase } = await ensureCondominiumAccess(condominiumId);
+  const { supabase } = await ensureCondominiumAccess(condominiumId, unitManagerRoles);
   const { error } = await supabase
     .from("units")
     .delete()

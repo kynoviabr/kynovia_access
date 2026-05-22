@@ -1,9 +1,9 @@
 import { occurrenceSeverities, occurrenceStatuses } from "@kynovia/database";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { createOccurrenceAction, updateOccurrenceAction } from "./actions";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
+import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
 type SearchParams = Promise<{ status?: string; state?: string }>;
@@ -69,12 +69,8 @@ function formatDate(value: string, timeZone: string) {
 
 export default async function OccurrencesPage({ searchParams }: { searchParams: SearchParams }) {
   await requireAuthorizedProfile();
-  const context = await getCondoAdminContext();
+  const context = requireOperationalModuleAccess(await getCondoAdminContext(), "occurrences");
   const queryParams = await searchParams;
-
-  if (!context?.condominium) {
-    redirect("/dashboard?error=missing_condominium_context");
-  }
 
   const { condominium } = context;
   const stateFilter = queryParams.state?.trim() ?? "open";

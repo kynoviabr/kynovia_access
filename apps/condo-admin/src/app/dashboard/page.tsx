@@ -3,6 +3,7 @@ import { AdminDashboardShell } from "@kynovia/ui";
 import { signOutAction } from "../actions";
 import { requireAuthorizedProfile } from "../../lib/auth/session";
 import { getCondoAdminContext } from "../../lib/condominiums/context";
+import { getAllowedOperationalModules } from "../../lib/operations/modules";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,7 @@ export default async function DashboardPage() {
   const profile = await requireAuthorizedProfile();
   const context = await getCondoAdminContext();
   const condominium = context?.condominium ?? null;
+  const modules = getAllowedOperationalModules(profile.role);
 
   return (
     <AdminDashboardShell
@@ -20,36 +22,31 @@ export default async function DashboardPage() {
       signOutAction={signOutAction}
     >
       {condominium ? (
-        <section className="quick-actions">
-          <Link className="module-card" href="/dashboard/settings">
-            <span>Configuracoes</span>
-            <strong>Dados basicos, timezone e capacidade de vagas visitantes.</strong>
-          </Link>
-          <Link className="module-card" href="/dashboard/units">
-            <span>Unidades</span>
-            <strong>Cadastro operacional de apartamentos, casas, blocos e andares.</strong>
-          </Link>
-          <Link className="module-card" href="/dashboard/residents">
-            <span>Moradores</span>
-            <strong>Moradores, vinculos com unidades e veiculos autorizados.</strong>
-          </Link>
-          <Link className="module-card" href="/dashboard/visitors">
-            <span>Visitantes</span>
-            <strong>Cadastro de visitantes, placas e historico por unidade.</strong>
-          </Link>
-          <Link className="module-card" href="/dashboard/invites">
-            <span>Convites</span>
-            <strong>Convites recentes, validacoes, vagas e blacklist de placas.</strong>
-          </Link>
-          <Link className="module-card" href="/dashboard/gates">
-            <span>Portoes e cancelas</span>
-            <strong>Pontos de acesso configurados e comandos recentes.</strong>
-          </Link>
-          <Link className="module-card" href="/dashboard/occurrences">
-            <span>Ocorrencias</span>
-            <strong>Registro administrativo de eventos operacionais.</strong>
-          </Link>
-        </section>
+        <>
+          <section className="condo-overview">
+            <div className="metric-card">
+              <span>Condominio</span>
+              <strong>{condominium.name}</strong>
+            </div>
+            <div className="metric-card">
+              <span>Perfil operacional</span>
+              <strong>{profile.role}</strong>
+            </div>
+            <div className="metric-card">
+              <span>Modulos liberados</span>
+              <strong>{modules.length}</strong>
+            </div>
+          </section>
+          <section className="quick-actions">
+            {modules.map((module) => (
+              <Link className="module-card" href={module.href} key={module.key}>
+                <span>{module.title}</span>
+                <strong>{module.description}</strong>
+                {module.phase === "foundation" ? <small>Modulo em fundacao</small> : null}
+              </Link>
+            ))}
+          </section>
+        </>
       ) : (
         <p className="form-error">
           Nenhum condominio ativo foi encontrado para este perfil. Solicite o vinculo de

@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   updateCondominiumAction,
   updateOperationalSettingsAction
 } from "../actions";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
+import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
 
 type SearchParams = Promise<{
   status?: string;
@@ -51,12 +51,8 @@ function errorMessage(status?: string) {
 
 export default async function SettingsPage({ searchParams }: { searchParams: SearchParams }) {
   await requireAuthorizedProfile();
-  const context = await getCondoAdminContext();
+  const context = requireOperationalModuleAccess(await getCondoAdminContext(), "settings");
   const params = await searchParams;
-
-  if (!context?.condominium) {
-    redirect("/dashboard?error=missing_condominium_context");
-  }
 
   const { condominium } = context;
   const success = statusMessage(params.status);
