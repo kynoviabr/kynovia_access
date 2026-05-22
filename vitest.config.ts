@@ -7,6 +7,11 @@ export default defineConfig({
       reporter: ["text", "lcov"]
     },
     environment: "node",
-    include: ["packages/*/src/**/*.test.ts", "packages/*/src/**/*.test.tsx"]
+    include: [
+      "apps/*/src/**/*.test.ts",
+      "apps/*/src/**/*.test.tsx",
+      "packages/*/src/**/*.test.ts",
+      "packages/*/src/**/*.test.tsx"
+    ]
   }
 });

@@ -16,7 +16,8 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -68,13 +69,19 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   color: #111827;
   min-height: 44px;
   padding: 0 12px;
+}
+
+input[readonly] {
+  background: #f1f5f9;
+  color: #64748b;
 }
 
 button,
@@ -166,6 +173,113 @@ button.danger {
   padding: 32px 24px 56px;
 }
 
+.saas-shell {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.saas-sidebar {
+  background: #0f172a;
+  color: #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 28px 18px;
+}
+
+.brand-block {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.brand-block > span {
+  align-items: center;
+  background: #14b8a6;
+  border-radius: 8px;
+  color: #052e2b;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  height: 36px;
+  justify-content: center;
+  width: 36px;
+}
+
+.brand-block strong,
+.brand-block small {
+  display: block;
+}
+
+.brand-block small {
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.side-nav {
+  display: grid;
+  gap: 8px;
+}
+
+.side-nav a {
+  border-radius: 8px;
+  color: #cbd5e1;
+  font-weight: 800;
+  padding: 12px;
+  text-decoration: none;
+}
+
+.side-nav a.active,
+.side-nav a:hover {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+.side-nav a.active {
+  box-shadow: inset 4px 0 0 #14b8a6;
+}
+
+.saas-content {
+  min-width: 0;
+  padding: 32px 40px 56px;
+}
+
+.topbar {
+  align-items: flex-start;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.topbar-profile {
+  align-items: flex-end;
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+  min-width: 180px;
+}
+
+.topbar-profile span,
+.topbar-profile small {
+  display: block;
+}
+
+.topbar-profile span {
+  font-weight: 800;
+}
+
+.topbar-profile small {
+  color: #64748b;
+}
+
+.dashboard-metrics {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .admin-header {
   align-items: flex-start;
   display: flex;
@@ -202,6 +316,69 @@ button.danger {
   gap: 16px;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   margin-top: 20px;
+}
+
+.customer-toolbar {
+  align-items: end;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 16px;
+}
+
+.customer-search {
+  position: relative;
+}
+
+.customer-search input {
+  padding-left: 42px;
+  width: 100%;
+}
+
+.search-icon {
+  border: 2px solid #64748b;
+  border-radius: 999px;
+  height: 14px;
+  left: 14px;
+  position: absolute;
+  top: 38px;
+  width: 14px;
+}
+
+.search-icon::after {
+  background: #64748b;
+  content: "";
+  height: 7px;
+  left: 11px;
+  position: absolute;
+  top: 10px;
+  transform: rotate(45deg);
+  width: 2px;
+}
+
+.empty-state {
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  margin-top: 20px;
+  padding: 28px;
+}
+
+.empty-state h2 {
+  margin: 0 0 8px;
+}
+
+.page-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.customer-form {
+  gap: 20px;
 }
 
 .metric-card {
@@ -328,6 +505,10 @@ button.danger {
   grid-template-columns: minmax(0, 1fr) 84px minmax(0, 0.8fr);
 }
 
+.split-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .compact-address-row {
   align-items: end;
   display: flex;
@@ -354,7 +535,7 @@ button.danger {
   min-width: 0;
 }
 
-.email-phone-row label:last-child {
+.email-phone-row label:not(:first-child) {
   flex: 0 0 190px;
 }
 
@@ -465,11 +646,35 @@ th {
 }
 
 @media (max-width: 860px) {
+  .saas-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .saas-sidebar {
+    position: static;
+  }
+
+  .saas-content {
+    padding: 24px;
+  }
+
   .admin-header,
   .admin-grid,
   .form-row,
-  .inline-admin-form {
+  .inline-admin-form,
+  .topbar,
+  .customer-toolbar,
+  .dashboard-metrics {
     grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    display: grid;
+  }
+
+  .topbar-profile {
+    align-items: start;
+    justify-items: start;
   }
 
   .finance-dashboard {

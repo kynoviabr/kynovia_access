@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { isValidCnpj, onlyDigits } from "../../../lib/customers/metadata";
 import { brazilStates, brazilTimezones, timezoneByState } from "./form-options";
 
 type ClientRegistrationFieldsProps = {
@@ -13,12 +14,20 @@ type ClientRegistrationFieldsProps = {
   clientCnpj?: string;
   clientEmail?: string;
   clientPhone?: string;
+  clientWhatsapp?: string;
+  contact1Name?: string;
+  contact1Whatsapp?: string;
+  contact2Name?: string;
+  contact2Whatsapp?: string;
+  contractDocumentsStatus?: string;
+  contractExpiresAt?: string;
+  contractMonthlyValue?: number | string;
+  contractNumber?: string;
+  legalName?: string;
+  showContractFields?: boolean;
+  tradeName?: string;
   timezone?: string;
 };
-
-function onlyDigits(value: string) {
-  return value.replace(/\D/g, "");
-}
 
 function formatCnpj(value: string) {
   const digits = onlyDigits(value).slice(0, 14);
@@ -27,25 +36,6 @@ function formatCnpj(value: string) {
     .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
     .replace(/\.(\d{3})(\d)/, ".$1/$2")
     .replace(/(\d{4})(\d)/, "$1-$2");
-}
-
-function isValidCnpj(value: string) {
-  const digits = onlyDigits(value);
-
-  if (digits.length !== 14 || /^(\d)\1{13}$/.test(digits)) {
-    return false;
-  }
-
-  const calculateDigit = (base: string, weights: number[]) => {
-    const sum = weights.reduce((total, weight, index) => total + Number(base[index]) * weight, 0);
-    const remainder = sum % 11;
-    return remainder < 2 ? 0 : 11 - remainder;
-  };
-
-  const firstDigit = calculateDigit(digits.slice(0, 12), [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
-  const secondDigit = calculateDigit(digits.slice(0, 13), [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
-
-  return firstDigit === Number(digits[12]) && secondDigit === Number(digits[13]);
 }
 
 function formatPhone(value: string) {
@@ -86,6 +76,18 @@ export function ClientRegistrationFields({
   clientCnpj = "",
   clientEmail = "",
   clientPhone = "",
+  clientWhatsapp = "",
+  contact1Name = "",
+  contact1Whatsapp = "",
+  contact2Name = "",
+  contact2Whatsapp = "",
+  contractDocumentsStatus = "pending",
+  contractExpiresAt = "",
+  contractMonthlyValue = "",
+  contractNumber = "",
+  legalName = "",
+  showContractFields = true,
+  tradeName = "",
   timezone = "America/Sao_Paulo"
 }: ClientRegistrationFieldsProps) {
   const [uf, setUf] = useState(addressState);
@@ -93,6 +95,9 @@ export function ClientRegistrationFields({
   const [cnpj, setCnpj] = useState(formatCnpj(clientCnpj));
   const [cnpjError, setCnpjError] = useState("");
   const [phone, setPhone] = useState(formatPhone(clientPhone));
+  const [whatsapp, setWhatsapp] = useState(formatPhone(clientWhatsapp));
+  const [contact1Phone, setContact1Phone] = useState(formatPhone(contact1Whatsapp));
+  const [contact2Phone, setContact2Phone] = useState(formatPhone(contact2Whatsapp));
   const [cep, setCep] = useState(formatCep(addressPostalCode));
   const [address, setAddress] = useState(addressLine);
   const [city, setCity] = useState(addressCity);
@@ -155,19 +160,19 @@ export function ClientRegistrationFields({
 
   return (
     <>
-      <label>
-        <RequiredLabel>Timezone</RequiredLabel>
-        <select name="timezone" required value={timezoneValue} onChange={(event) => setTimezoneValue(event.target.value)}>
-          {brazilTimezones.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="form-row split-row">
+        <label>
+          <RequiredLabel>Razao Social</RequiredLabel>
+          <input name="legal_name" required defaultValue={legalName} placeholder="Condominio Aurora SPE Ltda." />
+        </label>
+        <label>
+          <RequiredLabel>Nome Fantasia</RequiredLabel>
+          <input name="trade_name" required defaultValue={tradeName} placeholder="Residencial Aurora" />
+        </label>
+      </div>
       <div className="form-row email-phone-row">
         <label>
-          <RequiredLabel>E-mail comercial</RequiredLabel>
+          <RequiredLabel>E-mail</RequiredLabel>
           <input name="client_email" type="email" required defaultValue={clientEmail} />
         </label>
         <label>
@@ -181,6 +186,19 @@ export function ClientRegistrationFields({
             title="Use o formato (XX) XXXXX-XXXX"
             value={phone}
             onChange={(event) => setPhone(formatPhone(event.target.value))}
+          />
+        </label>
+        <label>
+          <RequiredLabel>WhatsApp</RequiredLabel>
+          <input
+            name="client_whatsapp"
+            required
+            inputMode="tel"
+            pattern="\(\d{2}\) \d{5}-\d{4}"
+            placeholder="(XX) XXXXX-XXXX"
+            title="Use o formato (XX) XXXXX-XXXX"
+            value={whatsapp}
+            onChange={(event) => setWhatsapp(formatPhone(event.target.value))}
           />
         </label>
       </div>
@@ -225,7 +243,17 @@ export function ClientRegistrationFields({
         </label>
       </div>
       <label>
-        <RequiredLabel>Endereco</RequiredLabel>
+        <RequiredLabel>Timezone</RequiredLabel>
+        <select name="timezone" required value={timezoneValue} onChange={(event) => setTimezoneValue(event.target.value)}>
+          {brazilTimezones.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
+        <RequiredLabel>Endereco completo</RequiredLabel>
         <input
           name="address_line"
           required
@@ -265,6 +293,75 @@ export function ClientRegistrationFields({
           </select>
         </label>
       </div>
+      <div className="form-row split-row">
+        <label>
+          <RequiredLabel>Nome do contato 1</RequiredLabel>
+          <input name="contact_1_name" required defaultValue={contact1Name} />
+        </label>
+        <label>
+          <RequiredLabel>WhatsApp do contato 1</RequiredLabel>
+          <input
+            name="contact_1_whatsapp"
+            required
+            inputMode="tel"
+            pattern="\(\d{2}\) \d{5}-\d{4}"
+            placeholder="(XX) XXXXX-XXXX"
+            value={contact1Phone}
+            onChange={(event) => setContact1Phone(formatPhone(event.target.value))}
+          />
+        </label>
+      </div>
+      <div className="form-row split-row">
+        <label>
+          Nome do contato 2
+          <input name="contact_2_name" defaultValue={contact2Name} />
+        </label>
+        <label>
+          WhatsApp do contato 2
+          <input
+            name="contact_2_whatsapp"
+            inputMode="tel"
+            pattern="\(\d{2}\) \d{5}-\d{4}"
+            placeholder="(XX) XXXXX-XXXX"
+            value={contact2Phone}
+            onChange={(event) => setContact2Phone(formatPhone(event.target.value))}
+          />
+        </label>
+      </div>
+      {showContractFields ? (
+        <div className="contract-fields">
+          <div className="form-row split-row">
+            <label>
+              <RequiredLabel>Numero do contrato</RequiredLabel>
+              <input name="contract_number" required defaultValue={contractNumber} />
+            </label>
+            <label>
+              <RequiredLabel>Data de vencimento do contrato</RequiredLabel>
+              <input name="contract_expires_at" type="date" required defaultValue={contractExpiresAt} />
+            </label>
+          </div>
+          <div className="form-row split-row">
+            <label>
+              <RequiredLabel>Valor mensal</RequiredLabel>
+              <input
+                name="contract_monthly_value"
+                required
+                inputMode="decimal"
+                placeholder="0,00"
+                defaultValue={String(contractMonthlyValue ?? "")}
+              />
+            </label>
+            <label>
+              Documentos
+              <select name="contract_documents_status" defaultValue={contractDocumentsStatus}>
+                <option value="pending">Placeholder seguro: documentos pendentes</option>
+                <option value="received">Documentos recebidos fora do sistema</option>
+                <option value="not_required">Nao aplicavel nesta etapa</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }
