@@ -1,11 +1,19 @@
 "use server";
 
 import { defaultCondominiumTimezone } from "@kynovia/database";
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
+import {
+  isValidCepFormat,
+  isValidCnpjFormat,
+  isValidEmail,
+  isValidPhoneFormat,
+  metadataObject,
+  moneyValue
+} from "../../../lib/customers/metadata";
 import { brazilStates, brazilTimezones } from "./form-options";
 
 function formValue(formData: FormData, key: string) {
@@ -21,41 +29,6 @@ function financePath(condominiumId?: string) {
   return condominiumId ? `/dashboard/finance/${condominiumId}` : "/dashboard/finance";
 }
 
-function onlyDigits(value: string) {
-  return value.replace(/\D/g, "");
-}
-
-function isValidCnpjFormat(value: string) {
-  const digits = onlyDigits(value);
-
-  if (!/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/.test(value) || digits.length !== 14) {
-    return false;
-  }
-
-  if (/^(\d)\1{13}$/.test(digits)) {
-    return false;
-  }
-
-  const calculateDigit = (base: string, weights: number[]) => {
-    const sum = weights.reduce((total, weight, index) => total + Number(base[index]) * weight, 0);
-    const remainder = sum % 11;
-    return remainder < 2 ? 0 : 11 - remainder;
-  };
-
-  const firstDigit = calculateDigit(digits.slice(0, 12), [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
-  const secondDigit = calculateDigit(digits.slice(0, 13), [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
-
-  return firstDigit === Number(digits[12]) && secondDigit === Number(digits[13]);
-}
-
-function isValidPhoneFormat(value: string) {
-  return /^\(\d{2}\) \d{5}-\d{4}$/.test(value);
-}
-
-function isValidCepFormat(value: string) {
-  return /^\d{5}-\d{3}$/.test(value);
-}
-
 function isValidBrazilState(value: string) {
   return brazilStates.includes(value as (typeof brazilStates)[number]);
 }
@@ -65,9 +38,14 @@ function isValidBrazilTimezone(value: string) {
 }
 
 function getClientFields(formData: FormData) {
+  const contractMonthlyValue = moneyValue(formValue(formData, "contract_monthly_value"));
+
   return {
+    legal_name: formValue(formData, "legal_name"),
+    trade_name: formValue(formData, "trade_name"),
     email: formValue(formData, "client_email").toLowerCase(),
     phone: formValue(formData, "client_phone"),
+    whatsapp: formValue(formData, "client_whatsapp"),
     cnpj: formValue(formData, "client_cnpj"),
     address: {
       line: formValue(formData, "address_line"),
@@ -76,14 +54,22 @@ function getClientFields(formData: FormData) {
       city: formValue(formData, "address_city"),
       state: formValue(formData, "address_state").toUpperCase(),
       postal_code: formValue(formData, "address_postal_code")
+    },
+    contact_1: {
+      name: formValue(formData, "contact_1_name"),
+      whatsapp: formValue(formData, "contact_1_whatsapp")
+    },
+    contact_2: {
+      name: formValue(formData, "contact_2_name") || null,
+      whatsapp: formValue(formData, "contact_2_whatsapp") || null
+    },
+    contract: {
+      documents_status: formValue(formData, "contract_documents_status") || "pending",
+      expires_at: formValue(formData, "contract_expires_at"),
+      monthly_value: contractMonthlyValue,
+      number: formValue(formData, "contract_number")
     }
   };
-}
-
-function metadataObject(value: unknown): Record<string, unknown> {
-  return value && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
 }
 
 function financeObject(value: unknown): Record<string, unknown> {
@@ -95,24 +81,43 @@ function paymentList(value: unknown) {
   return Array.isArray(payments) ? payments : [];
 }
 
-function moneyValue(value: string) {
-  const normalized = value.replace(/\./g, "").replace(",", ".");
-  const amount = Number(normalized);
-  return Number.isFinite(amount) && amount >= 0 ? amount : null;
-}
-
 function hasValidClientFields(client: ReturnType<typeof getClientFields>, timezone: string) {
   return (
-    client.email.includes("@") &&
+    Boolean(client.legal_name) &&
+    Boolean(client.trade_name) &&
+    isValidEmail(client.email) &&
     isValidPhoneFormat(client.phone) &&
+    isValidPhoneFormat(client.whatsapp) &&
     isValidCnpjFormat(client.cnpj) &&
     Boolean(client.address.line) &&
     Boolean(client.address.number) &&
     Boolean(client.address.city) &&
     isValidBrazilState(client.address.state) &&
     isValidCepFormat(client.address.postal_code) &&
+    Boolean(client.contact_1.name) &&
+    isValidPhoneFormat(client.contact_1.whatsapp) &&
+    (!client.contact_2.whatsapp || isValidPhoneFormat(client.contact_2.whatsapp)) &&
+    Boolean(client.contract.number) &&
+    Boolean(client.contract.expires_at) &&
+    typeof client.contract.monthly_value === "number" &&
     isValidBrazilTimezone(timezone)
   );
+}
+
+function getAdminFields(formData: FormData) {
+  return {
+    email: formValue(formData, "admin_email").toLowerCase(),
+    fullName: formValue(formData, "admin_full_name"),
+    whatsapp: formValue(formData, "admin_whatsapp")
+  };
+}
+
+function hasValidAdminFields(admin: ReturnType<typeof getAdminFields>) {
+  return Boolean(admin.fullName) && isValidEmail(admin.email) && isValidPhoneFormat(admin.whatsapp);
+}
+
+function generatedTemporaryPassword() {
+  return `Kynovia@${randomBytes(6).toString("hex")}`;
 }
 
 function requirePlatformAdmin(role: string) {
@@ -234,7 +239,7 @@ export async function createCondominiumAction(formData: FormData) {
   const profile = await requireAuthorizedProfile();
   requirePlatformAdmin(profile.role);
 
-  const name = formValue(formData, "name");
+  const name = formValue(formData, "trade_name") || formValue(formData, "name");
   const slug = formValue(formData, "slug");
   const timezone = formValue(formData, "timezone") || defaultCondominiumTimezone;
   const client = getClientFields(formData);
@@ -278,6 +283,73 @@ export async function createCondominiumAction(formData: FormData) {
   redirect(`/dashboard/condominiums/new?status=condominium_created&created=${condominiumId}`);
 }
 
+export async function createCondominiumWithAdminAction(formData: FormData) {
+  const profile = await requireAuthorizedProfile();
+  requirePlatformAdmin(profile.role);
+
+  const name = formValue(formData, "trade_name");
+  const slug = formValue(formData, "slug");
+  const timezone = formValue(formData, "timezone") || defaultCondominiumTimezone;
+  const client = getClientFields(formData);
+  const admin = getAdminFields(formData);
+
+  if (!name || !slug) {
+    redirect("/dashboard/condominiums/new?error=missing_condominium_fields");
+  }
+
+  if (!hasValidClientFields(client, timezone)) {
+    redirect("/dashboard/condominiums/new?error=invalid_client_fields");
+  }
+
+  if (!hasValidAdminFields(admin)) {
+    redirect("/dashboard/condominiums/new?error=missing_admin_fields");
+  }
+
+  const condominiumId = randomUUID();
+  const supabase = await createServerSupabaseClient();
+  const { data: duplicateCnpj } = await supabase
+    .from("condominiums")
+    .select("id")
+    .eq("tenant_id", profile.tenantId)
+    .contains("metadata", { client: { cnpj: client.cnpj } })
+    .maybeSingle();
+
+  if (duplicateCnpj) {
+    redirect("/dashboard/condominiums/new?error=duplicate_cnpj");
+  }
+
+  const { error } = await supabase.from("condominiums").insert({
+    id: condominiumId,
+    tenant_id: profile.tenantId,
+    name,
+    slug,
+    timezone,
+    metadata: {
+      client: {
+        ...client,
+        system_admin: {
+          email: admin.email,
+          full_name: admin.fullName,
+          whatsapp: admin.whatsapp
+        }
+      }
+    }
+  });
+
+  if (error) {
+    redirect("/dashboard/condominiums/new?error=create_condominium_failed");
+  }
+
+  const adminData = new FormData();
+  adminData.set("condominium_id", condominiumId);
+  adminData.set("full_name", admin.fullName);
+  adminData.set("email", admin.email);
+  adminData.set("admin_whatsapp", admin.whatsapp);
+  adminData.set("temporary_password", generatedTemporaryPassword());
+
+  return createCondominiumAdmin(adminData, condominiumPath(condominiumId));
+}
+
 export async function createCondominiumAdminAction(formData: FormData) {
   return createCondominiumAdmin(formData, "/dashboard/condominiums/new");
 }
@@ -292,15 +364,16 @@ async function createCondominiumAdmin(formData: FormData, returnPath: string) {
   requirePlatformAdmin(profile.role);
 
   const condominiumId = formValue(formData, "condominium_id");
-  const fullName = formValue(formData, "full_name");
-  const email = formValue(formData, "email").toLowerCase();
-  const temporaryPassword = formValue(formData, "temporary_password");
+  const fullName = formValue(formData, "full_name") || formValue(formData, "admin_full_name");
+  const email = (formValue(formData, "email") || formValue(formData, "admin_email")).toLowerCase();
+  const whatsapp = formValue(formData, "admin_whatsapp");
+  const temporaryPassword = formValue(formData, "temporary_password") || generatedTemporaryPassword();
 
-  if (!condominiumId || !fullName || !email || !temporaryPassword) {
+  if (!condominiumId || !fullName || !email || !whatsapp || !temporaryPassword) {
     redirect(`${returnPath}?error=missing_admin_fields`);
   }
 
-  if (!email.includes("@") || temporaryPassword.length < 10) {
+  if (!isValidEmail(email) || temporaryPassword.length < 10 || !isValidPhoneFormat(whatsapp)) {
     redirect(`${returnPath}?error=invalid_admin_credentials`);
   }
 
@@ -323,7 +396,8 @@ async function createCondominiumAdmin(formData: FormData, returnPath: string) {
       password: temporaryPassword,
       email_confirm: true,
       user_metadata: {
-        full_name: fullName
+        full_name: fullName,
+        whatsapp: whatsapp || null
       }
     })
   });
@@ -399,7 +473,7 @@ export async function updateCondominiumClientAction(formData: FormData) {
   requirePlatformAdmin(profile.role);
 
   const condominiumId = formValue(formData, "condominium_id");
-  const name = formValue(formData, "name");
+  const name = formValue(formData, "trade_name") || formValue(formData, "name");
   const slug = formValue(formData, "slug");
   const timezone = formValue(formData, "timezone") || defaultCondominiumTimezone;
   const client = getClientFields(formData);
@@ -567,13 +641,14 @@ export async function updateCondominiumAdminAction(formData: FormData) {
   const profileId = formValue(formData, "profile_id");
   const fullName = formValue(formData, "full_name");
   const email = formValue(formData, "email").toLowerCase();
+  const whatsapp = formValue(formData, "admin_whatsapp");
   const password = formValue(formData, "password");
 
   if (!condominiumId || !profileId || !fullName || !email) {
     redirect(`${condominiumPath(condominiumId)}?error=missing_admin_fields`);
   }
 
-  if (!email.includes("@") || (password && password.length < 10)) {
+  if (!isValidEmail(email) || (whatsapp && !isValidPhoneFormat(whatsapp)) || (password && password.length < 10)) {
     redirect(`${condominiumPath(condominiumId)}?error=invalid_admin_credentials`);
   }
 
@@ -591,10 +666,15 @@ export async function updateCondominiumAdminAction(formData: FormData) {
     redirect(`${condominiumPath(condominiumId)}?error=admin_not_found`);
   }
 
-  const authPayload: { email: string; password?: string; user_metadata: { full_name: string } } = {
+  const authPayload: {
+    email: string;
+    password?: string;
+    user_metadata: { full_name: string; whatsapp: string | null };
+  } = {
     email,
     user_metadata: {
-      full_name: fullName
+      full_name: fullName,
+      whatsapp: whatsapp || null
     }
   };
 

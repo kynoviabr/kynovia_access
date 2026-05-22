@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { KynoviaAdminShell } from "../../_components/KynoviaAdminShell";
 import { ClientRegistrationFields, RequiredLabel } from "../ClientRegistrationFields";
+import { ContractMetadataFields } from "../ContractMetadataFields";
 import { ScrollToTopOnStatus } from "../ScrollToTopOnStatus";
 import { ScrollToTopSubmitButton } from "../ScrollToTopSubmitButton";
 import { requireAuthorizedProfile } from "../../../../lib/auth/session";
 import { createServerSupabaseClient } from "../../../../lib/supabase/server";
+import { clientFromMetadata } from "../../../../lib/customers/metadata";
 import {
   createCondominiumAdminFromDetailAction,
   removeCondominiumAdminAction,
@@ -13,29 +16,6 @@ import {
 
 type PageParams = Promise<{ condominiumId: string }>;
 type SearchParams = Promise<{ error?: string; status?: string }>;
-type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
-
-type ClientMetadata = {
-  client?: {
-    email?: string | null;
-    phone?: string | null;
-    cnpj?: string | null;
-    address?: {
-      line?: string | null;
-      number?: string | null;
-      complement?: string | null;
-      city?: string | null;
-      state?: string | null;
-      postal_code?: string | null;
-    } | null;
-  } | null;
-};
 
 type AdminMembership = {
   id: string;
@@ -45,16 +25,11 @@ type AdminMembership = {
     email?: string;
     full_name: string;
     role: string;
+    whatsapp?: string | null;
   };
 };
 
 export const dynamic = "force-dynamic";
-
-function asClientMetadata(metadata: Json): ClientMetadata {
-  return metadata && typeof metadata === "object" && !Array.isArray(metadata)
-    ? (metadata as ClientMetadata)
-    : {};
-}
 
 function statusMessage(status?: string) {
   if (status === "client_updated") {
@@ -92,8 +67,8 @@ function errorMessage(error?: string) {
     create_admin_membership_failed: "Perfil criado, mas nao foi possivel vincular o administrador ao condominio.",
     create_admin_profile_failed: "Usuario criado, mas nao foi possivel criar o perfil do administrador.",
     duplicate_cnpj: "Ja existe um condominio cliente cadastrado com este CNPJ.",
-    invalid_admin_credentials: "Informe um e-mail valido e uma senha temporaria com pelo menos 10 caracteres.",
-    invalid_client_fields: "Preencha CNPJ, e-mail, telefone, endereco, UF, CEP e timezone em formato valido.",
+    invalid_admin_credentials: "Informe e-mail, WhatsApp e senha temporaria validos.",
+    invalid_client_fields: "Revise CNPJ, e-mail, telefones, CEP, UF, contrato, valor mensal e timezone.",
     last_admin_removal_blocked: "Nao e possivel remover o ultimo administrador do condominio.",
     missing_admin_fields: "Informe todos os campos obrigatorios do administrador.",
     missing_condominium_fields: "Informe nome e slug valido para o condominio.",
@@ -107,12 +82,12 @@ function errorMessage(error?: string) {
   return error ? messages[error] ?? `Nao foi possivel concluir: ${error}` : null;
 }
 
-async function getAdminAuthEmails(profileIds: string[]) {
+async function getAdminAuthProfiles(profileIds: string[]) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceRoleKey) {
-    return new Map<string, string>();
+    return new Map<string, { email: string; whatsapp: string | null }>();
   }
 
   const entries = await Promise.all(
@@ -129,12 +104,27 @@ async function getAdminAuthEmails(profileIds: string[]) {
         return null;
       }
 
-      const data = (await response.json()) as { email?: string; user?: { email?: string } };
-      return [profileId, data.email ?? data.user?.email ?? ""] as const;
+      const data = (await response.json()) as {
+        email?: string;
+        user?: { email?: string; user_metadata?: { whatsapp?: string | null } };
+        user_metadata?: { whatsapp?: string | null };
+      };
+      return [
+        profileId,
+        {
+          email: data.email ?? data.user?.email ?? "",
+          whatsapp: data.user_metadata?.whatsapp ?? data.user?.user_metadata?.whatsapp ?? null
+        }
+      ] as const;
     })
   );
 
-  return new Map(entries.filter((entry): entry is readonly [string, string] => Boolean(entry)));
+  return new Map(
+    entries.filter(
+      (entry): entry is readonly [string, { email: string; whatsapp: string | null }] =>
+        Boolean(entry)
+    )
+  );
 }
 
 export default async function CondominiumDetailPage({
@@ -180,94 +170,113 @@ export default async function CondominiumDetailPage({
   const { data: profilesData } = profileIds.length
     ? await supabase.from("profiles").select("id, full_name, role").in("id", profileIds)
     : { data: [] };
-  const adminEmailsById = await getAdminAuthEmails(profileIds);
+  const adminAuthById = await getAdminAuthProfiles(profileIds);
   const profilesById = new Map((profilesData ?? []).map((item) => [item.id, item]));
   const admins: AdminMembership[] = (membershipsData ?? []).map((membership) => ({
     ...membership,
     profile: {
-      email: adminEmailsById.get(membership.profile_id) ?? "",
+      email: adminAuthById.get(membership.profile_id)?.email ?? "",
       full_name: profilesById.get(membership.profile_id)?.full_name ?? "Administrador sem perfil",
-      role: profilesById.get(membership.profile_id)?.role ?? "condominium_admin"
+      role: profilesById.get(membership.profile_id)?.role ?? "condominium_admin",
+      whatsapp: adminAuthById.get(membership.profile_id)?.whatsapp ?? null
     }
   }));
-  const metadata = asClientMetadata(condominium.metadata);
-  const client = metadata.client ?? {};
+  const client = clientFromMetadata(condominium.metadata);
   const address = client.address ?? {};
+  const contract = client.contract ?? {};
   const success = statusMessage(query.status);
   const failure = errorMessage(query.error);
 
   return (
-    <main className="admin-shell">
+    <KynoviaAdminShell
+      active="customers"
+      title={client.trade_name || condominium.name}
+      description="Dados comerciais e acessos administrativos do cliente. Configuracoes operacionais continuam no Condo Admin."
+      profile={profile}
+    >
       <ScrollToTopOnStatus />
-      <header className="admin-header">
-        <div>
-          <p className="eyebrow">Kynovia Admin</p>
-          <h1>{condominium.name}</h1>
-          <p className="muted">
-            Dados comerciais e acessos administrativos do cliente. Configuracoes operacionais
-            continuam no Condo Admin.
-          </p>
-        </div>
+      <div className="page-actions">
         <Link className="button-link secondary" href="/dashboard/condominiums">
-          Voltar
+          Voltar para clientes
         </Link>
-      </header>
+      </div>
 
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
 
-      <section className="admin-grid detail-grid">
-        <div className="admin-stack">
-          <div className="admin-section">
-            <h2>Dados basicos do cliente</h2>
-            <form className="admin-form" action={updateCondominiumClientAction}>
-              <input name="condominium_id" type="hidden" value={condominium.id} />
-              <label>
-                <RequiredLabel>Nome do condominio</RequiredLabel>
-                <input name="name" required defaultValue={condominium.name} />
-              </label>
-              <label>
-                <RequiredLabel>Slug</RequiredLabel>
-                <input name="slug" required defaultValue={condominium.slug} />
-              </label>
-              <ClientRegistrationFields
-                addressCity={address.city ?? ""}
-                addressComplement={address.complement ?? ""}
-                addressLine={address.line ?? ""}
-                addressNumber={address.number ?? ""}
-                addressPostalCode={address.postal_code ?? ""}
-                addressState={address.state ?? ""}
-                clientCnpj={client.cnpj ?? ""}
-                clientEmail={client.email ?? ""}
-                clientPhone={client.phone ?? ""}
-                timezone={condominium.timezone}
-              />
-              <ScrollToTopSubmitButton>Salvar dados do cliente</ScrollToTopSubmitButton>
-            </form>
-          </div>
-        </div>
+      <form className="admin-form customer-form" action={updateCondominiumClientAction}>
+        <input name="condominium_id" type="hidden" value={condominium.id} />
+        <section className="admin-section">
+          <h2>Dados Gerais</h2>
+          <label>
+            <RequiredLabel>Slug</RequiredLabel>
+            <input name="slug" required defaultValue={condominium.slug} />
+          </label>
+          <ClientRegistrationFields
+            addressCity={address.city ?? ""}
+            addressComplement={address.complement ?? ""}
+            addressLine={address.line ?? ""}
+            addressNumber={address.number ?? ""}
+            addressPostalCode={address.postal_code ?? ""}
+            addressState={address.state ?? ""}
+            clientCnpj={client.cnpj ?? ""}
+            clientEmail={client.email ?? ""}
+            clientPhone={client.phone ?? ""}
+            clientWhatsapp={client.whatsapp ?? client.phone ?? ""}
+            contact1Name={client.contact_1?.name ?? ""}
+            contact1Whatsapp={client.contact_1?.whatsapp ?? ""}
+            contact2Name={client.contact_2?.name ?? ""}
+            contact2Whatsapp={client.contact_2?.whatsapp ?? ""}
+            legalName={client.legal_name ?? ""}
+            showContractFields={false}
+            timezone={condominium.timezone}
+            tradeName={client.trade_name ?? condominium.name}
+          />
+        </section>
 
+        <section className="admin-section">
+          <h2>Metadados do Contrato</h2>
+          <ContractMetadataFields
+            documentsStatus={contract.documents_status ?? "pending"}
+            expiresAt={contract.expires_at ?? ""}
+            monthlyValue={contract.monthly_value ?? ""}
+            number={contract.number ?? ""}
+          />
+        </section>
+
+        <ScrollToTopSubmitButton>Salvar dados do cliente</ScrollToTopSubmitButton>
+      </form>
+
+      <section className="admin-grid detail-grid">
         <div className="admin-stack">
           <div className="admin-section">
             <h2>Novo administrador</h2>
             <form className="admin-form" action={createCondominiumAdminFromDetailAction}>
               <input name="condominium_id" type="hidden" value={condominium.id} />
               <label>
-                <RequiredLabel>Nome do administrador</RequiredLabel>
+                <RequiredLabel>Nome completo</RequiredLabel>
                 <input name="full_name" required placeholder="Mariana Oliveira" />
               </label>
               <label>
-                <RequiredLabel>E-mail de acesso</RequiredLabel>
+                <RequiredLabel>E-mail</RequiredLabel>
                 <input name="email" type="email" required placeholder="admin@cliente.com.br" />
               </label>
               <label>
-                <RequiredLabel>Senha temporaria</RequiredLabel>
-                <input name="temporary_password" type="password" required minLength={10} />
+                <RequiredLabel>WhatsApp</RequiredLabel>
+                <input
+                  name="admin_whatsapp"
+                  required
+                  inputMode="tel"
+                  pattern="\(\d{2}\) \d{5}-\d{4}"
+                  placeholder="(XX) XXXXX-XXXX"
+                />
               </label>
               <button type="submit">Criar administrador</button>
             </form>
           </div>
+        </div>
 
+        <div className="admin-stack">
           <div className="admin-section">
             <h2>Administradores</h2>
             <div className="admin-list">
@@ -285,8 +294,18 @@ export default async function CondominiumDetailPage({
                       />
                     </label>
                     <label>
-                      <RequiredLabel>E-mail de acesso</RequiredLabel>
+                      <RequiredLabel>E-mail</RequiredLabel>
                       <input name="email" type="email" required defaultValue={admin.profile?.email ?? ""} />
+                    </label>
+                    <label>
+                      WhatsApp
+                      <input
+                        name="admin_whatsapp"
+                        inputMode="tel"
+                        pattern="\(\d{2}\) \d{5}-\d{4}"
+                        placeholder="(XX) XXXXX-XXXX"
+                        defaultValue={admin.profile?.whatsapp ?? ""}
+                      />
                     </label>
                     <label>
                       Nova senha
@@ -313,6 +332,6 @@ export default async function CondominiumDetailPage({
           </div>
         </div>
       </section>
-    </main>
+    </KynoviaAdminShell>
   );
 }

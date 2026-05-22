@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { createCondominiumAction, createCondominiumAdminAction } from "../actions";
+import { KynoviaAdminShell } from "../../_components/KynoviaAdminShell";
+import { createCondominiumWithAdminAction } from "../actions";
 import { ClientRegistrationFields, RequiredLabel } from "../ClientRegistrationFields";
+import { ContractMetadataFields } from "../ContractMetadataFields";
 import { requireAuthorizedProfile } from "../../../../lib/auth/session";
-import { createServerSupabaseClient } from "../../../../lib/supabase/server";
 
 type SearchParams = Promise<{
-  created?: string;
   error?: string;
   status?: string;
 }>;
@@ -13,20 +13,16 @@ type SearchParams = Promise<{
 export const dynamic = "force-dynamic";
 
 function statusMessage(status?: string) {
-  if (status === "condominium_created") {
-    return "Condominio criado. Agora crie o acesso do administrador do cliente.";
-  }
-
-  if (status === "admin_created" || status === "admin_created_email_sent") {
-    return "Acesso do administrador criado e e-mail enviado ao cliente.";
+  if (status === "admin_created_email_sent") {
+    return "Cliente cadastrado, administrador criado e e-mail enviado.";
   }
 
   if (status === "admin_created_email_not_configured") {
-    return "Acesso do administrador criado. Configure EMAIL_PROVIDER=resend, EMAIL_FROM e RESEND_API_KEY para enviar e-mail automaticamente.";
+    return "Cliente cadastrado. Configure EMAIL_PROVIDER=resend, EMAIL_FROM e RESEND_API_KEY para enviar credenciais automaticamente.";
   }
 
   if (status === "admin_created_email_failed") {
-    return "Acesso do administrador criado, mas o envio do e-mail falhou. Confira a configuracao do provedor de e-mail.";
+    return "Cliente cadastrado, mas o envio do e-mail falhou. Confira o provedor de e-mail.";
   }
 
   return status ? `Operacao concluida: ${status}` : null;
@@ -34,17 +30,16 @@ function statusMessage(status?: string) {
 
 function errorMessage(error?: string) {
   const messages: Record<string, string> = {
-    condominium_not_found: "Condominio nao encontrado para o tenant atual.",
     create_admin_auth_failed: "Nao foi possivel criar o usuario de acesso. Verifique se o e-mail ja existe.",
-    create_admin_membership_failed: "Perfil criado, mas nao foi possivel vincular o administrador ao condominio.",
+    create_admin_membership_failed: "Perfil criado, mas nao foi possivel vincular o administrador ao cliente.",
     create_admin_profile_failed: "Usuario criado, mas nao foi possivel criar o perfil do administrador.",
-    create_condominium_failed: "Nao foi possivel criar o condominio.",
-    duplicate_cnpj: "Ja existe um condominio cliente cadastrado com este CNPJ.",
-    insufficient_role: "Seu perfil nao possui permissao para criar condominios.",
-    invalid_admin_credentials: "Informe um e-mail valido e uma senha temporaria com pelo menos 10 caracteres.",
-    invalid_client_fields: "Preencha CNPJ, e-mail, telefone, endereco, UF, CEP e timezone em formato valido.",
-    missing_admin_fields: "Informe condominio, nome, e-mail e senha temporaria do administrador.",
-    missing_condominium_fields: "Informe nome e slug valido para criar o condominio.",
+    create_condominium_failed: "Nao foi possivel criar o cliente.",
+    duplicate_cnpj: "Ja existe um cliente cadastrado com este CNPJ.",
+    insufficient_role: "Seu perfil nao possui permissao para criar clientes.",
+    invalid_admin_credentials: "Informe nome, e-mail e WhatsApp validos para o administrador.",
+    invalid_client_fields: "Revise CNPJ, e-mail, telefones, CEP, UF, contrato, valor mensal e timezone.",
+    missing_admin_fields: "Informe nome, e-mail e WhatsApp do administrador.",
+    missing_condominium_fields: "Informe nome fantasia e slug validos.",
     service_role_missing: "Configure SUPABASE_SERVICE_ROLE_KEY no servidor para criar usuarios de clientes."
   };
 
@@ -54,97 +49,79 @@ function errorMessage(error?: string) {
 export default async function NewCondominiumPage({ searchParams }: { searchParams: SearchParams }) {
   const profile = await requireAuthorizedProfile();
   const params = await searchParams;
-  const supabase = await createServerSupabaseClient();
-  const { data: condominiums, error } = await supabase
-    .from("condominiums")
-    .select("id, name")
-    .eq("tenant_id", profile.tenantId)
-    .order("name", { ascending: true });
   const success = statusMessage(params.status);
   const failure = errorMessage(params.error);
 
   return (
-    <main className="admin-shell">
-      <header className="admin-header">
-        <div>
-          <p className="eyebrow">Kynovia Admin</p>
-          <h1>Novo cliente</h1>
-          <p className="muted">
-            Cadastro comercial do condominio cliente e provisionamento do primeiro administrador.
-          </p>
-        </div>
+    <KynoviaAdminShell
+      active="customers"
+      title="Novo Cliente"
+      description="Cadastro comercial do cliente e provisionamento do primeiro administrador do Condo Admin."
+      profile={profile}
+    >
+      <div className="page-actions">
         <Link className="button-link secondary" href="/dashboard/condominiums">
           Voltar para clientes
         </Link>
-      </header>
+      </div>
 
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
-      {error ? <p className="form-error">Falha ao carregar condominios.</p> : null}
 
-      <section className="admin-grid onboarding-grid">
-        <div className="admin-stack">
-          <div className="admin-section">
-            <h2>Novo condominio cliente</h2>
-            <p className="muted">
-              Cria o registro base para implantacao. Configuracoes operacionais serao tratadas no
-              Condo Admin.
-            </p>
-            <form className="admin-form" action={createCondominiumAction}>
-              <label>
-                <RequiredLabel>Nome</RequiredLabel>
-                <input name="name" required placeholder="Residencial Aurora" />
-              </label>
-              <label>
-                <RequiredLabel>Slug</RequiredLabel>
-                <input name="slug" required placeholder="residencial-aurora" />
-              </label>
-              <ClientRegistrationFields />
-              <button type="submit">Criar condominio</button>
-            </form>
-          </div>
+      <form className="admin-form customer-form" action={createCondominiumWithAdminAction}>
+        <section className="admin-section">
+          <h2>Dados Gerais</h2>
+          <p className="muted">
+            CNPJ e dados comerciais identificam o cliente Kynovia. O CNPJ e o slug sao chaves de
+            negocio obrigatorias.
+          </p>
+          <label>
+            <RequiredLabel>Slug</RequiredLabel>
+            <input name="slug" required placeholder="residencial-aurora" />
+          </label>
+          <ClientRegistrationFields showContractFields={false} />
+        </section>
 
-          <div className="admin-section">
-            <h2>Acesso do cliente</h2>
-            <p className="muted">
-              Crie o primeiro administrador do condominio. Esse usuario acessa o Condo Admin para
-              configurar unidades, moradores, visitantes, portoes e operacao diaria.
-            </p>
-            <form className="admin-form" action={createCondominiumAdminAction}>
-              <label>
-                <RequiredLabel>Condominio</RequiredLabel>
-                <select name="condominium_id" required defaultValue={params.created ?? ""}>
-                  <option value="">Selecione um condominio</option>
-                  {(condominiums ?? []).map((condominium) => (
-                    <option key={condominium.id} value={condominium.id}>
-                      {condominium.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                <RequiredLabel>Nome do administrador</RequiredLabel>
-                <input name="full_name" required placeholder="Mariana Oliveira" />
-              </label>
-              <label>
-                <RequiredLabel>E-mail de acesso</RequiredLabel>
-                <input name="email" type="email" required placeholder="admin@cliente.com.br" />
-              </label>
-              <label>
-                <RequiredLabel>Senha temporaria</RequiredLabel>
-                <input
-                  name="temporary_password"
-                  type="password"
-                  required
-                  minLength={10}
-                  placeholder="Defina uma senha temporaria"
-                />
-              </label>
-              <button type="submit">Criar acesso do cliente</button>
-            </form>
+        <section className="admin-section">
+          <h2>Metadados do Contrato</h2>
+          <p className="muted">
+            Informacoes comerciais usadas pelo dashboard SaaS. Upload real de documentos permanece
+            como etapa futura segura.
+          </p>
+          <ContractMetadataFields />
+        </section>
+
+        <section className="admin-section">
+          <h2>Administrador do Sistema</h2>
+          <p className="muted">
+            Este usuario recebera o acesso ao Condo Admin para administrar apenas o proprio
+            condominio.
+          </p>
+          <div className="form-row split-row">
+            <label>
+              <RequiredLabel>Nome completo</RequiredLabel>
+              <input name="admin_full_name" required placeholder="Mariana Oliveira" />
+            </label>
+            <label>
+              <RequiredLabel>E-mail</RequiredLabel>
+              <input name="admin_email" type="email" required placeholder="admin@cliente.com.br" />
+            </label>
           </div>
-        </div>
-      </section>
-    </main>
+          <label>
+            <RequiredLabel>WhatsApp</RequiredLabel>
+            <input
+              name="admin_whatsapp"
+              required
+              inputMode="tel"
+              pattern="\(\d{2}\) \d{5}-\d{4}"
+              placeholder="(XX) XXXXX-XXXX"
+              title="Use o formato (XX) XXXXX-XXXX"
+            />
+          </label>
+        </section>
+
+        <button type="submit">Cadastrar cliente</button>
+      </form>
+    </KynoviaAdminShell>
   );
 }
