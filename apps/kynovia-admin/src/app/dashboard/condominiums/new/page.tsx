@@ -83,7 +83,7 @@ export default async function NewCondominiumPage({ searchParams }: { searchParam
         </section>
 
         <section className="admin-section">
-          <h2>Metadados do Contrato</h2>
+          <h2>Dados do Contrato</h2>
           <p className="muted">
             Informacoes comerciais usadas pelo dashboard SaaS. Upload real de documentos permanece
             como etapa futura segura.
