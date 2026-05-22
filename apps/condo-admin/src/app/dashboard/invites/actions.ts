@@ -18,7 +18,6 @@ function formValue(formData: FormData, key: string) {
 function requireCondoManager(role: string) {
   if (
     ![
-      "tenant_admin",
       "condominium_admin",
       "syndic",
       "manager",

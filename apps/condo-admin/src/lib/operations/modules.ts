@@ -110,8 +110,7 @@ const allowedModulesByRole: Record<string, string[]> = {
   doorman_supervisor: ["visitors", "invites", "gates", "doorman", "occurrences"],
   manager: operationalModules.map((module) => module.key),
   resident_manager: ["units", "residents", "vehicles", "visitors", "invites"],
-  syndic: operationalModules.map((module) => module.key),
-  tenant_admin: operationalModules.map((module) => module.key)
+  syndic: operationalModules.map((module) => module.key)
 };
 
 export function getAllowedOperationalModules(role: string) {

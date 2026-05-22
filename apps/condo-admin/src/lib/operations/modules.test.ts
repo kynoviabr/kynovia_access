@@ -25,5 +25,6 @@ describe("condo-admin operational modules", () => {
     expect(canAccessOperationalModule("doorman_supervisor", "settings")).toBe(false);
     expect(canAccessOperationalModule("resident_manager", "residents")).toBe(true);
     expect(canAccessOperationalModule("resident_manager", "gates")).toBe(false);
+    expect(getAllowedOperationalModules("tenant_admin")).toEqual([]);
   });
 });
