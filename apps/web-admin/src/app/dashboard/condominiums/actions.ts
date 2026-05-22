@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import {
   isAccessPointKind,
   normalizeNullableText,
@@ -42,23 +43,23 @@ export async function createCondominiumAction(formData: FormData) {
   }
 
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
+  const condominiumId = randomUUID();
+  const { error } = await supabase
     .from("condominiums")
     .insert({
+      id: condominiumId,
       tenant_id: profile.tenantId,
       name,
       slug,
       timezone
-    })
-    .select("id")
-    .single();
+    });
 
-  if (error || !data) {
+  if (error) {
     redirect("/dashboard/condominiums?error=create_condominium_failed");
   }
 
   revalidatePath("/dashboard/condominiums");
-  redirect(`/dashboard/condominiums/${data.id}?status=condominium_created`);
+  redirect(`/dashboard/condominiums/${condominiumId}?status=condominium_created`);
 }
 
 export async function updateCondominiumAction(formData: FormData) {
