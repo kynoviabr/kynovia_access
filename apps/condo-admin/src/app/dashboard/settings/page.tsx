@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   updateCondominiumAction,
   updateOperationalSettingsAction
@@ -63,15 +62,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
       <header className="admin-header">
         <div>
           <p className="eyebrow">Condo Admin</p>
-          <h1>Configuracoes do condominio</h1>
+          <h1>Configuracoes</h1>
           <p className="muted">
             Ajustes simples do ambiente operacional do condominio. Configuracoes avancadas ficam
             ocultas para reduzir risco e complexidade.
           </p>
         </div>
-        <Link className="button-link secondary" href="/dashboard">
-          Voltar
-        </Link>
       </header>
 
       {success ? <p className="form-success">{success}</p> : null}
@@ -79,7 +75,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
 
       <section className="admin-grid">
         <div className="admin-section">
-          <h2>Dados basicos</h2>
+          <h2>Dados gerais do condominio</h2>
           <p className="muted">
             Nome e timezone usados nos cadastros, convites e operacao da portaria.
           </p>
@@ -90,7 +86,53 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
               <input name="name" defaultValue={condominium.name} required />
             </label>
             <label>
-              Identificador
+              CNPJ
+              <input name="cnpj" defaultValue={condominium.cnpj} required placeholder="00.000.000/0000-00" />
+            </label>
+            <label>
+              CEP
+              <input name="postalCode" defaultValue={condominium.postalCode} placeholder="00000-000" />
+            </label>
+            <label>
+              Endereco completo
+              <input name="fullAddress" defaultValue={condominium.fullAddress} placeholder="Rua, avenida ou alameda" />
+            </label>
+            <div className="form-row split">
+              <label>
+                Numero
+                <input name="number" defaultValue={condominium.number} />
+              </label>
+              <label>
+                Complemento
+                <input name="complement" defaultValue={condominium.complement} />
+              </label>
+            </div>
+            <div className="form-row split">
+              <label>
+                Cidade
+                <input name="city" defaultValue={condominium.city} />
+              </label>
+              <label>
+                UF
+                <input name="state" defaultValue={condominium.state} maxLength={2} />
+              </label>
+            </div>
+            <div className="form-row split">
+              <label>
+                Telefone
+                <input name="phone" defaultValue={condominium.phone} placeholder="(11) 99999-9999" />
+              </label>
+              <label>
+                WhatsApp
+                <input name="whatsapp" defaultValue={condominium.whatsapp} placeholder="(11) 99999-9999" />
+              </label>
+            </div>
+            <label>
+              E-mail
+              <input name="email" type="email" defaultValue={condominium.email} />
+            </label>
+            <label>
+              Slug
               <input value={condominium.slug} readOnly aria-readonly="true" />
             </label>
             <label>

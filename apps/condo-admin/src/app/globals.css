@@ -166,9 +166,117 @@ button.secondary,
   gap: 12px;
 }
 
-.admin-shell {
+.condo-admin-layout {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
   min-height: 100vh;
-  padding: 40px;
+}
+
+.condo-sidebar {
+  background: #0f172a;
+  color: #e5edf7;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 100vh;
+  padding: 24px 16px;
+  position: sticky;
+  top: 0;
+}
+
+.condo-brand,
+.condo-topbar {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.condo-brand strong,
+.condo-topbar strong {
+  display: block;
+}
+
+.condo-brand span,
+.condo-topbar span {
+  color: #94a3b8;
+  display: block;
+  font-size: 0.82rem;
+  margin-top: 3px;
+}
+
+.condo-logo {
+  align-items: center;
+  background: #14b8a6;
+  border-radius: 8px;
+  color: #042f2e;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 900;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.condo-sidebar-nav {
+  display: grid;
+  gap: 6px;
+}
+
+.condo-sidebar-nav a {
+  align-items: center;
+  border-radius: 8px;
+  color: #cbd5e1;
+  display: flex;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 10px;
+  text-decoration: none;
+}
+
+.condo-sidebar-nav a[aria-current="page"] {
+  background: #1e293b;
+  color: #ffffff;
+  outline: 2px solid #14b8a6;
+}
+
+.condo-sidebar-nav span {
+  align-items: center;
+  background: #334155;
+  border-radius: 7px;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 900;
+  height: 24px;
+  justify-content: center;
+  width: 28px;
+}
+
+.condo-sidebar-footer {
+  margin-top: auto;
+}
+
+.condo-sidebar-footer button {
+  width: 100%;
+}
+
+.condo-main {
+  min-width: 0;
+}
+
+.condo-topbar {
+  background: rgba(248, 250, 252, 0.94);
+  border-bottom: 1px solid #dbe4ef;
+  min-height: 72px;
+  padding: 0 40px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.admin-shell {
+  min-height: calc(100vh - 72px);
+  padding: 32px 40px 40px;
 }
 
 .admin-header {
@@ -263,6 +371,15 @@ button.secondary,
 .inline-form {
   display: grid;
   gap: 12px;
+}
+
+.form-row {
+  display: grid;
+  gap: 14px;
+}
+
+.form-row.split {
+  grid-template-columns: minmax(120px, 0.45fr) minmax(180px, 1fr);
 }
 
 .filter-form {
@@ -404,12 +521,27 @@ th {
 }
 
 @media (max-width: 760px) {
+  .condo-admin-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .condo-sidebar {
+    min-height: auto;
+    position: static;
+  }
+
+  .condo-topbar {
+    padding: 14px 24px;
+    position: static;
+  }
+
   .admin-shell {
     padding: 24px;
   }
 
   .admin-header,
   .filter-form,
+  .form-row.split,
   .inline-form,
   .record-grid,
   .record-subgrid {

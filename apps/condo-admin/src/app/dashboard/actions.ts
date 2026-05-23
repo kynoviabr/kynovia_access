@@ -1,6 +1,6 @@
 "use server";
 
-import { normalizeNullableText, parseNonNegativeInteger } from "@kynovia/database";
+import { normalizeNullableText, normalizePhone, parseNonNegativeInteger } from "@kynovia/database";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAuthorizedProfile } from "../../lib/auth/session";
@@ -9,6 +9,10 @@ import { createServerSupabaseClient } from "../../lib/supabase/server";
 function formValue(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeDigits(value: string) {
+  return value.replace(/\D/g, "");
 }
 
 const settingsManagerRoles = ["condominium_admin", "syndic", "manager"];
@@ -59,8 +63,9 @@ export async function updateCondominiumAction(formData: FormData) {
   const condominiumId = formValue(formData, "condominiumId");
   const name = formValue(formData, "name");
   const timezone = formValue(formData, "timezone") || "America/Sao_Paulo";
+  const cnpj = normalizeDigits(formValue(formData, "cnpj"));
 
-  if (!condominiumId || !name) {
+  if (!condominiumId || !name || cnpj.length !== 14) {
     redirectToSettings("missing_condominium_fields");
   }
 
@@ -70,7 +75,22 @@ export async function updateCondominiumAction(formData: FormData) {
   );
   const { error } = await supabase
     .from("condominiums")
-    .update({ name, timezone })
+    .update({
+      metadata: {
+        city: formValue(formData, "city"),
+        cnpj,
+        complement: formValue(formData, "complement"),
+        email: formValue(formData, "email"),
+        fullAddress: formValue(formData, "fullAddress"),
+        number: formValue(formData, "number"),
+        phone: normalizePhone(formValue(formData, "phone")),
+        postalCode: normalizeDigits(formValue(formData, "postalCode")),
+        state: formValue(formData, "state"),
+        whatsapp: normalizePhone(formValue(formData, "whatsapp"))
+      },
+      name,
+      timezone
+    })
     .eq("id", condominiumId)
     .eq("tenant_id", profile.tenantId);
 

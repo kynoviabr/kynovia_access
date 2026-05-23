@@ -16,11 +16,19 @@ export type AuthorizedCondoOperationalContext = CondoAdminContext & {
 
 export const operationalModules = [
   {
-    description: "Cadastro operacional de apartamentos, casas, blocos e andares.",
+    description: "Dados gerais, contato, endereco e parametros operacionais do condominio.",
+    href: "/dashboard/settings",
+    key: "settings",
+    phase: "available",
+    scope: ["Dados gerais do condominio", "CNPJ e contatos", "Timezone e vagas visitantes"],
+    title: "Configuracoes"
+  },
+  {
+    description: "Cadastro operacional de apartamentos, casas, quadras, lotes e blocos.",
     href: "/dashboard/units",
     key: "units",
     phase: "available",
-    scope: ["Criar e manter unidades", "Organizar blocos, numeros e andares"],
+    scope: ["Enderecos das unidades", "Blocos, quadras, lotes e numeros", "Observacoes em metadata"],
     title: "Unidades"
   },
   {
@@ -45,7 +53,7 @@ export const operationalModules = [
     key: "gates",
     phase: "available",
     scope: ["Configurar pontos de acesso", "Acompanhar comandos", "Preparar integracoes"],
-    title: "Portoes e cancelas"
+    title: "Portoes e Cancelas"
   },
   {
     description: "Funcionarios autorizados pelo condominio.",
@@ -61,55 +69,31 @@ export const operationalModules = [
     key: "suppliers",
     phase: "foundation",
     scope: ["Organizar prestadores", "Controlar recorrencia", "Preparar regras de entrada"],
-    title: "Prestadores"
+    title: "Prestadores de Servico"
   },
   {
-    description: "Cadastro de visitantes, placas e historico por unidade.",
-    href: "/dashboard/visitors",
-    key: "visitors",
-    phase: "available",
-    scope: ["Consultar visitantes", "Gerenciar placas", "Acompanhar historico"],
-    title: "Visitantes"
-  },
-  {
-    description: "Convites recentes, validacoes, vagas e blacklist de placas.",
-    href: "/dashboard/invites",
-    key: "invites",
-    phase: "available",
-    scope: ["Acompanhar convites", "Validar QR/placa", "Controlar vagas visitantes"],
-    title: "Convites"
-  },
-  {
-    description: "Visao operacional da portaria para supervisao do condominio.",
-    href: "/dashboard/doorman",
-    key: "doorman",
+    description: "Catalogo das areas comuns disponiveis para futura reserva e regras de uso.",
+    href: "/dashboard/common-areas",
+    key: "common_areas",
     phase: "foundation",
-    scope: ["Preparar fila operacional", "Acompanhar eventos pendentes", "Apoiar portaria"],
-    title: "Portaria"
+    scope: ["Selecionar areas padrao", "Registrar area personalizada", "Preparar futuras reservas"],
+    title: "Areas Comuns"
   },
   {
-    description: "Registro administrativo de eventos operacionais.",
-    href: "/dashboard/occurrences",
-    key: "occurrences",
+    description: "Capacidade e identificacao das vagas destinadas a visitantes.",
+    href: "/dashboard/visitor-parking",
+    key: "visitor_parking",
     phase: "available",
-    scope: ["Registrar ocorrencias", "Classificar eventos", "Acompanhar historico"],
-    title: "Ocorrencias"
-  },
-  {
-    description: "Dados basicos, timezone e capacidade de vagas visitantes.",
-    href: "/dashboard/settings",
-    key: "settings",
-    phase: "available",
-    scope: ["Ajustar dados basicos", "Configurar vagas", "Evitar JSON exposto"],
-    title: "Configuracoes do Condominio"
+    scope: ["Numero total de vagas", "Localizacao das vagas", "Identificacao operacional"],
+    title: "Vagas Visitantes"
   }
 ] satisfies CondoOperationalModule[];
 
 const allowedModulesByRole: Record<string, string[]> = {
   condominium_admin: operationalModules.map((module) => module.key),
-  doorman_supervisor: ["visitors", "invites", "gates", "doorman", "occurrences"],
+  doorman_supervisor: ["vehicles", "gates", "common_areas", "visitor_parking"],
   manager: operationalModules.map((module) => module.key),
-  resident_manager: ["units", "residents", "vehicles", "visitors", "invites"],
+  resident_manager: ["units", "residents", "vehicles", "common_areas", "visitor_parking"],
   syndic: operationalModules.map((module) => module.key)
 };
 

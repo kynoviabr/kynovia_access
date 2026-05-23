@@ -3,11 +3,21 @@ import { getCurrentProfile } from "../auth/session";
 import { createServerSupabaseClient } from "../supabase/server";
 
 export type ActiveCondominium = {
+  city: string;
+  cnpj: string;
+  complement: string;
+  email: string;
+  fullAddress: string;
   id: string;
   name: string;
+  number: string;
+  phone: string;
+  postalCode: string;
   slug: string;
+  state: string;
   timezone: string;
   visitorParkingCapacity: number;
+  whatsapp: string;
 };
 
 export type CondoAdminContext = {
@@ -17,6 +27,7 @@ export type CondoAdminContext = {
 
 type CondominiumRow = {
   id: string;
+  metadata: unknown;
   name: string;
   slug: string;
   timezone: string;
@@ -32,12 +43,31 @@ const condoAdminMembershipRoles = [
 ];
 
 function mapCondominium(row: CondominiumRow): ActiveCondominium {
+  const metadata =
+    row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
+      ? (row.metadata as Record<string, unknown>)
+      : {};
+  const value = (key: string) => {
+    const item = metadata[key];
+    return typeof item === "string" ? item : "";
+  };
+
   return {
+    city: value("city"),
+    cnpj: value("cnpj"),
+    complement: value("complement"),
+    email: value("email"),
+    fullAddress: value("fullAddress"),
     id: row.id,
     name: row.name,
+    number: value("number"),
+    phone: value("phone"),
+    postalCode: value("postalCode"),
     slug: row.slug,
+    state: value("state"),
     timezone: row.timezone,
-    visitorParkingCapacity: row.visitor_parking_capacity
+    visitorParkingCapacity: row.visitor_parking_capacity,
+    whatsapp: value("whatsapp")
   };
 }
 
@@ -67,7 +97,7 @@ export async function getCondoAdminContext(): Promise<CondoAdminContext | null> 
 
   let query = supabase
     .from("condominiums")
-    .select("id, name, slug, timezone, visitor_parking_capacity")
+    .select("id, name, slug, timezone, visitor_parking_capacity, metadata")
     .eq("tenant_id", profile.tenantId)
     .order("name", { ascending: true })
     .limit(1);
