@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  createUnitAction,
   deleteUnitAction,
   updateUnitAction,
   updateUnitRegistrationModeAction
@@ -225,6 +226,69 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
             </fieldset>
             <button type="submit">Salvar tipo de condominio</button>
           </form>
+        </div>
+
+        <div className="admin-section">
+          <h2>Cadastrar unidade</h2>
+          {configuredUnitMode ? (
+            <form className="admin-form" action={createUnitAction}>
+              <input type="hidden" name="condominiumId" value={condominium.id} />
+              <input type="hidden" name="unitRegistrationMode" value={configuredUnitMode} />
+              <p className="field-hint">
+                {isHorizontal
+                  ? "Cadastre usando quadra, lote, rua e numero."
+                  : "Cadastre usando bloco, andar e unidade."}
+              </p>
+              {isHorizontal ? (
+                <>
+                  <label>
+                    Quadra
+                    <input name="horizontalBlock" placeholder="Quadra A" />
+                  </label>
+                  <label>
+                    Lote
+                    <input name="horizontalNumber" required placeholder="12" />
+                  </label>
+                  <label>
+                    Rua
+                    <input name="street" placeholder="Rua das Palmeiras" />
+                  </label>
+                  <label>
+                    Numero
+                    <input name="addressNumber" placeholder="120" />
+                  </label>
+                </>
+              ) : (
+                <>
+                  <label>
+                    Bloco
+                    <input name="verticalBlock" placeholder="A" />
+                  </label>
+                  <label>
+                    Andar
+                    <input name="verticalFloor" placeholder="1" />
+                  </label>
+                  <label>
+                    Unidade
+                    <input name="verticalNumber" required placeholder="101" />
+                  </label>
+                </>
+              )}
+              <label>
+                Complemento
+                <input name="complement" placeholder="Observacao interna" />
+              </label>
+              <button type="submit">Cadastrar unidade</button>
+            </form>
+          ) : (
+            <div className="empty-state">
+              <strong>Escolha o tipo de condominio primeiro.</strong>
+              <p>
+                Salve se o condominio e vertical ou horizontal para liberar o cadastro das
+                unidades no formato correto.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="admin-section">

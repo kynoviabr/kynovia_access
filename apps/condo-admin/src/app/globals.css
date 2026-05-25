@@ -531,6 +531,24 @@ button.secondary,
   font-weight: 800;
 }
 
+.empty-state {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+}
+
+.empty-state strong {
+  color: #0f172a;
+}
+
+.empty-state p {
+  color: #475569;
+  margin: 0;
+}
+
 .filter-form {
   align-items: end;
   grid-template-columns: minmax(220px, 1fr) auto auto;
