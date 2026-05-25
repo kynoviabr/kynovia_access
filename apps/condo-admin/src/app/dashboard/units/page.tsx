@@ -10,7 +10,6 @@ import { requireOperationalModuleAccess } from "../../../lib/operations/modules"
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
 type SearchParams = Promise<{
-  onboarding?: string;
   q?: string;
   status?: string;
 }>;
@@ -124,13 +123,11 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
 
   const { data: unitsData, error } = await query;
   const units = (unitsData ?? []) as Unit[];
-  const inferredUnitMode = units.map(unitRegistrationMode).find(Boolean) ?? null;
-  const activeUnitMode = configuredUnitMode ?? inferredUnitMode;
+  const activeUnitMode = configuredUnitMode;
   const isHorizontal = activeUnitMode === "horizontal";
-  const isVertical = activeUnitMode === "vertical";
   const success = statusMessage(params.status);
   const failure = errorMessage(params.status);
-  const showOnboarding = params.onboarding === "unit_structure" && !configuredUnitMode;
+  const isMissingUnitMode = !configuredUnitMode;
 
   return (
     <main className="admin-shell">
@@ -151,13 +148,15 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
       {error ? <p className="form-error">Falha ao carregar unidades.</p> : null}
-      {showOnboarding ? (
+      {isMissingUnitMode ? (
         <section className="onboarding-callout">
-          <strong>Primeira configuracao obrigatoria</strong>
+          <strong>Tipo de condominio pendente</strong>
           <p>
-            Escolha o tipo de condominio para abrir o formulario correto de unidades e padronizar
-            os cadastros de moradores e veiculos.
+            Configure se o condominio e vertical ou horizontal antes de cadastrar unidades.
           </p>
+          <Link className="button-link secondary" href="/dashboard/settings?onboarding=unit_structure">
+            Configurar em Configuracoes
+          </Link>
         </section>
       ) : null}
 
@@ -180,78 +179,62 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
 
       <section className="admin-grid">
         <div className="admin-section">
-          <h2>Tipo de condominio</h2>
+          <h2>Cadastrar unidade</h2>
           <p className="muted">
-            Escolha a estrutura e cadastre as unidades do condominio neste mesmo formulario.
+            Cadastro de unidades no formato definido em Configuracoes.
           </p>
-          <form className="admin-form unit-mode-form" action={createUnitAction}>
+          <form className="admin-form" action={createUnitAction}>
             <input type="hidden" name="condominiumId" value={condominium.id} />
-            <fieldset className="choice-fieldset">
-              <legend>Escolha a estrutura de unidades</legend>
-              <label className="choice-card">
-                <input
-                  name="unitRegistrationMode"
-                  type="radio"
-                  value="vertical"
-                  defaultChecked={isVertical}
-                  required
-                />
-                <span>
-                  <strong>Condominio vertical</strong>
-                  <small>Usar bloco, andar e unidade.</small>
-                </span>
-              </label>
-              <label className="choice-card">
-                <input
-                  name="unitRegistrationMode"
-                  type="radio"
-                  value="horizontal"
-                  defaultChecked={isHorizontal}
-                  required
-                />
-                <span>
-                  <strong>Condominio horizontal</strong>
-                  <small>Usar quadra, lote, rua e numero.</small>
-                </span>
-              </label>
-            </fieldset>
-            <div className="mode-fields vertical-fields">
-              <label>
-                Bloco
-                <input name="verticalBlock" placeholder="A" />
-              </label>
-              <label>
-                Andar
-                <input name="verticalFloor" placeholder="1" />
-              </label>
-              <label>
-                Unidade
-                <input name="verticalNumber" placeholder="101" />
-              </label>
-            </div>
-            <div className="mode-fields horizontal-fields">
-              <label>
-                Quadra
-                <input name="horizontalBlock" placeholder="Quadra A" />
-              </label>
-              <label>
-                Lote
-                <input name="horizontalNumber" placeholder="12" />
-              </label>
-              <label>
-                Rua
-                <input name="street" placeholder="Rua das Palmeiras" />
-              </label>
-              <label>
-                Numero
-                <input name="addressNumber" placeholder="120" />
-              </label>
-            </div>
-            <label>
-              Complemento
-              <input name="complement" placeholder="Observacao interna" />
-            </label>
-            <button type="submit">Cadastrar unidade</button>
+            <input type="hidden" name="unitRegistrationMode" value={activeUnitMode ?? ""} />
+            {activeUnitMode ? (
+              <>
+                {isHorizontal ? (
+                  <>
+                    <label>
+                      Quadra
+                      <input name="horizontalBlock" placeholder="Quadra A" />
+                    </label>
+                    <label>
+                      Lote
+                      <input name="horizontalNumber" placeholder="12" required />
+                    </label>
+                    <label>
+                      Rua
+                      <input name="street" placeholder="Rua das Palmeiras" />
+                    </label>
+                    <label>
+                      Numero
+                      <input name="addressNumber" placeholder="120" />
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    <label>
+                      Bloco
+                      <input name="verticalBlock" placeholder="A" />
+                    </label>
+                    <label>
+                      Andar
+                      <input name="verticalFloor" placeholder="1" />
+                    </label>
+                    <label>
+                      Unidade
+                      <input name="verticalNumber" placeholder="101" required />
+                    </label>
+                  </>
+                )}
+                <label>
+                  Complemento
+                  <input name="complement" placeholder="Observacao interna" />
+                </label>
+                <button type="submit">Cadastrar unidade</button>
+              </>
+            ) : (
+              <div className="empty-state">
+                <strong>Escolha o tipo em Configuracoes.</strong>
+                <p>Depois disso, o formulario de cadastro de unidades aparece aqui.</p>
+              </div>
+            )}
           </form>
         </div>
 
@@ -269,7 +252,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
               </thead>
               <tbody>
                 {units.map((unit) => {
-                  const rowMode = configuredUnitMode ?? unitRegistrationMode(unit) ?? activeUnitMode;
+                  const rowMode = configuredUnitMode ?? unitRegistrationMode(unit);
                   const rowIsHorizontal = rowMode === "horizontal";
 
                   return (

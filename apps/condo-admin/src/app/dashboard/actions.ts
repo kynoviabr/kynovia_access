@@ -54,11 +54,6 @@ function redirectToUnits(status: string) {
   redirect(`/dashboard/units?status=${status}`);
 }
 
-function unitRedirect(status: string, onboarding = false) {
-  revalidateCondoPages();
-  redirect(`/dashboard/units?status=${status}${onboarding ? "&onboarding=unit_structure" : ""}`);
-}
-
 async function ensureCondominiumAccess(condominiumId: string, allowedRoles: string[]) {
   const profile = await requireAuthorizedProfile();
   requireCondoManager(profile.role, allowedRoles);
@@ -154,7 +149,7 @@ export async function updateUnitRegistrationModeAction(formData: FormData) {
   const mode = unitRegistrationMode(formData);
 
   if (!condominiumId || !mode) {
-    unitRedirect("missing_unit_structure", true);
+    redirectToSettings("missing_unit_structure");
   }
 
   const { profile, supabase, condominium } = await ensureCondominiumAccess(
@@ -175,10 +170,10 @@ export async function updateUnitRegistrationModeAction(formData: FormData) {
     .eq("tenant_id", profile.tenantId);
 
   if (error) {
-    unitRedirect("unit_structure_failed", true);
+    redirectToSettings("unit_structure_failed");
   }
 
-  unitRedirect("unit_structure_updated");
+  redirectToSettings("unit_structure_updated");
 }
 
 export async function createUnitAction(formData: FormData) {

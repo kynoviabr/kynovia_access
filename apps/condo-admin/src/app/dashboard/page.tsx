@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   const modules = getAllowedOperationalModules(profile.role);
 
   if (condominium && !condominium.unitRegistrationMode) {
-    redirect("/dashboard/units?onboarding=unit_structure");
+    redirect("/dashboard/settings?onboarding=unit_structure");
   }
 
   return (

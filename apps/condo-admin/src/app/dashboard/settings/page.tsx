@@ -1,12 +1,14 @@
 import {
   updateCondominiumAction,
-  updateOperationalSettingsAction
+  updateOperationalSettingsAction,
+  updateUnitRegistrationModeAction
 } from "../actions";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
 import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
 
 type SearchParams = Promise<{
+  onboarding?: string;
   status?: string;
 }>;
 
@@ -19,6 +21,10 @@ function statusMessage(status?: string) {
 
   if (status === "settings_updated") {
     return "Configuracoes operacionais atualizadas.";
+  }
+
+  if (status === "unit_structure_updated") {
+    return "Tipo de condominio atualizado.";
   }
 
   if (status?.includes("failed") || status?.startsWith("missing")) {
@@ -37,12 +43,20 @@ function errorMessage(status?: string) {
     return "Nao foi possivel identificar o condominio ativo.";
   }
 
+  if (status === "missing_unit_structure") {
+    return "Escolha se o condominio e vertical ou horizontal.";
+  }
+
   if (status === "update_condominium_failed") {
     return "Nao foi possivel atualizar os dados do condominio.";
   }
 
   if (status === "update_settings_failed") {
     return "Nao foi possivel atualizar as configuracoes operacionais.";
+  }
+
+  if (status === "unit_structure_failed") {
+    return "Nao foi possivel salvar o tipo de condominio.";
   }
 
   return status?.includes("failed") ? `Nao foi possivel concluir: ${status}` : null;
@@ -56,6 +70,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
   const { condominium } = context;
   const success = statusMessage(params.status);
   const failure = errorMessage(params.status);
+  const showOnboarding = params.onboarding === "unit_structure" && !condominium.unitRegistrationMode;
 
   return (
     <main className="admin-shell">
@@ -72,6 +87,14 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
 
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
+      {showOnboarding ? (
+        <section className="onboarding-callout">
+          <strong>Primeira configuracao obrigatoria</strong>
+          <p>
+            Escolha o tipo de condominio para liberar o cadastro de unidades no formato correto.
+          </p>
+        </section>
+      ) : null}
       <section className="admin-grid">
         <div className="admin-section">
           <h2>Dados gerais do condominio</h2>
@@ -160,6 +183,47 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
               />
             </label>
             <button type="submit">Salvar operacao</button>
+          </form>
+        </div>
+
+        <div className="admin-section">
+          <h2>Tipo de condominio</h2>
+          <p className="muted">
+            Esta configuracao define como as unidades serao cadastradas e exibidas em moradores e
+            veiculos.
+          </p>
+          <form className="admin-form" action={updateUnitRegistrationModeAction}>
+            <input type="hidden" name="condominiumId" value={condominium.id} />
+            <fieldset className="choice-fieldset">
+              <legend>Estrutura de unidades</legend>
+              <label className="choice-card">
+                <input
+                  name="unitRegistrationMode"
+                  type="radio"
+                  value="vertical"
+                  defaultChecked={condominium.unitRegistrationMode === "vertical"}
+                  required
+                />
+                <span>
+                  <strong>Condominio vertical</strong>
+                  <small>Usar bloco, andar e unidade.</small>
+                </span>
+              </label>
+              <label className="choice-card">
+                <input
+                  name="unitRegistrationMode"
+                  type="radio"
+                  value="horizontal"
+                  defaultChecked={condominium.unitRegistrationMode === "horizontal"}
+                  required
+                />
+                <span>
+                  <strong>Condominio horizontal</strong>
+                  <small>Usar quadra, lote, rua e numero.</small>
+                </span>
+              </label>
+            </fieldset>
+            <button type="submit">Salvar tipo de condominio</button>
           </form>
         </div>
       </section>

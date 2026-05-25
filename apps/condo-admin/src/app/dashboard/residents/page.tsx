@@ -258,11 +258,11 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
         <section className="onboarding-callout">
           <strong>Estrutura de unidades pendente</strong>
           <p>
-            Configure o tipo de condominio em Unidades para padronizar os vinculos exibidos em
+            Configure o tipo de condominio em Configuracoes para padronizar os vinculos exibidos em
             moradores e veiculos. Voce ainda pode acessar este modulo.
           </p>
-          <Link className="button-link secondary" href="/dashboard/units?onboarding=unit_structure">
-            Configurar em Unidades
+          <Link className="button-link secondary" href="/dashboard/settings?onboarding=unit_structure">
+            Configurar em Configuracoes
           </Link>
         </section>
       ) : null}

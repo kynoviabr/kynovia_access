@@ -175,11 +175,11 @@ export default async function VehiclesPage() {
         <section className="onboarding-callout">
           <strong>Estrutura de unidades pendente</strong>
           <p>
-            Configure o tipo de condominio em Unidades para exibir a selecao por bloco, andar e
+            Configure o tipo de condominio em Configuracoes para exibir a selecao por bloco, andar e
             unidade ou por quadra, lote, rua e numero.
           </p>
-          <Link className="button-link secondary" href="/dashboard/units?onboarding=unit_structure">
-            Configurar em Unidades
+          <Link className="button-link secondary" href="/dashboard/settings?onboarding=unit_structure">
+            Configurar em Configuracoes
           </Link>
         </section>
       ) : null}
