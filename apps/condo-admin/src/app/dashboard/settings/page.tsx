@@ -95,7 +95,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
           </p>
         </section>
       ) : null}
-      <section className="admin-grid">
+      <section className="settings-grid">
         <div className="admin-section">
           <h2>Dados gerais do condominio</h2>
           <p className="muted">
@@ -165,66 +165,67 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
           </form>
         </div>
 
-        <div className="admin-section">
-          <h2>Operacao</h2>
-          <p className="muted">
-            Parametros diarios expostos ao administrador do condominio. Campos tecnicos em JSON nao
-            aparecem nesta tela.
-          </p>
-          <form className="admin-form" action={updateOperationalSettingsAction}>
-            <input type="hidden" name="condominiumId" value={condominium.id} />
-            <label>
-              Vagas de visitantes
-              <input
-                min="0"
-                name="visitorParkingCapacity"
-                type="number"
-                defaultValue={condominium.visitorParkingCapacity}
-              />
-            </label>
-            <button type="submit">Salvar operacao</button>
-          </form>
-        </div>
+        <div className="settings-side-stack">
+          <div className="admin-section">
+            <h2>Tipo de condominio</h2>
+            <p className="muted">
+              Esta configuracao define como as unidades serao cadastradas e exibidas em moradores e
+              veiculos.
+            </p>
+            <form className="admin-form" action={updateUnitRegistrationModeAction}>
+              <input type="hidden" name="condominiumId" value={condominium.id} />
+              <fieldset className="choice-fieldset">
+                <legend>Estrutura de unidades</legend>
+                <label className="choice-card">
+                  <input
+                    name="unitRegistrationMode"
+                    type="radio"
+                    value="vertical"
+                    defaultChecked={condominium.unitRegistrationMode === "vertical"}
+                    required
+                  />
+                  <span>
+                    <strong>Condominio vertical</strong>
+                    <small>Usar bloco, andar e unidade.</small>
+                  </span>
+                </label>
+                <label className="choice-card">
+                  <input
+                    name="unitRegistrationMode"
+                    type="radio"
+                    value="horizontal"
+                    defaultChecked={condominium.unitRegistrationMode === "horizontal"}
+                    required
+                  />
+                  <span>
+                    <strong>Condominio horizontal</strong>
+                    <small>Usar quadra, lote, rua e numero.</small>
+                  </span>
+                </label>
+              </fieldset>
+              <button type="submit">Salvar tipo de condominio</button>
+            </form>
+          </div>
 
-        <div className="admin-section">
-          <h2>Tipo de condominio</h2>
-          <p className="muted">
-            Esta configuracao define como as unidades serao cadastradas e exibidas em moradores e
-            veiculos.
-          </p>
-          <form className="admin-form" action={updateUnitRegistrationModeAction}>
-            <input type="hidden" name="condominiumId" value={condominium.id} />
-            <fieldset className="choice-fieldset">
-              <legend>Estrutura de unidades</legend>
-              <label className="choice-card">
+          <div className="admin-section">
+            <h2>Numero de vagas</h2>
+            <p className="muted">
+              Quantidade de vagas de visitantes disponiveis para controle operacional.
+            </p>
+            <form className="admin-form" action={updateOperationalSettingsAction}>
+              <input type="hidden" name="condominiumId" value={condominium.id} />
+              <label>
+                Vagas de visitantes
                 <input
-                  name="unitRegistrationMode"
-                  type="radio"
-                  value="vertical"
-                  defaultChecked={condominium.unitRegistrationMode === "vertical"}
-                  required
+                  min="0"
+                  name="visitorParkingCapacity"
+                  type="number"
+                  defaultValue={condominium.visitorParkingCapacity}
                 />
-                <span>
-                  <strong>Condominio vertical</strong>
-                  <small>Usar bloco, andar e unidade.</small>
-                </span>
               </label>
-              <label className="choice-card">
-                <input
-                  name="unitRegistrationMode"
-                  type="radio"
-                  value="horizontal"
-                  defaultChecked={condominium.unitRegistrationMode === "horizontal"}
-                  required
-                />
-                <span>
-                  <strong>Condominio horizontal</strong>
-                  <small>Usar quadra, lote, rua e numero.</small>
-                </span>
-              </label>
-            </fieldset>
-            <button type="submit">Salvar tipo de condominio</button>
-          </form>
+              <button type="submit">Salvar numero de vagas</button>
+            </form>
+          </div>
         </div>
       </section>
     </main>

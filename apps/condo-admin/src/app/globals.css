@@ -304,6 +304,19 @@ button.secondary,
   margin: 0 0 24px;
 }
 
+.settings-grid {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(420px, 1.35fr) minmax(300px, 0.9fr);
+  margin: 0 0 24px;
+}
+
+.settings-side-stack {
+  display: grid;
+  gap: 18px;
+}
+
 .module-card,
 .metric-card,
 .admin-section,
@@ -714,6 +727,7 @@ th {
   .admin-header,
   .filter-form,
   .form-row.split,
+  .settings-grid,
   .inline-form,
   .record-grid,
   .record-subgrid {
