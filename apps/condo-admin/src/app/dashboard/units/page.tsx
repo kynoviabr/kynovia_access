@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  createUnitAction,
   deleteUnitAction,
   updateUnitAction,
   updateUnitRegistrationModeAction
@@ -294,79 +293,6 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
             </table>
           </div>
           {!units.length ? <p className="muted">Nenhuma unidade encontrada.</p> : null}
-        </div>
-
-        <div className="admin-section">
-          <h2>Nova unidade</h2>
-          <form className="admin-form unit-mode-form" action={createUnitAction}>
-            <input type="hidden" name="condominiumId" value={condominium.id} />
-            <fieldset className="choice-fieldset">
-              <legend>Tipo para esta unidade</legend>
-              <label className="choice-card">
-                <input
-                  name="unitRegistrationMode"
-                  type="radio"
-                  value="vertical"
-                  defaultChecked={isVertical}
-                  required
-                />
-                <span>
-                  <strong>Vertical</strong>
-                  <small>Bloco, andar e unidade.</small>
-                </span>
-              </label>
-              <div className="mode-fields vertical-fields">
-                <label>
-                  Bloco
-                  <input name="verticalBlock" placeholder="A" />
-                </label>
-                <label>
-                  Andar
-                  <input name="verticalFloor" placeholder="1" />
-                </label>
-                <label>
-                  Unidade
-                  <input name="verticalNumber" placeholder="101" />
-                </label>
-              </div>
-              <label className="choice-card">
-                <input
-                  name="unitRegistrationMode"
-                  type="radio"
-                  value="horizontal"
-                  defaultChecked={isHorizontal}
-                  required
-                />
-                <span>
-                  <strong>Horizontal</strong>
-                  <small>Quadra, lote, rua e numero.</small>
-                </span>
-              </label>
-              <div className="mode-fields horizontal-fields">
-                <label>
-                  Quadra
-                  <input name="horizontalBlock" placeholder="Quadra A" />
-                </label>
-                <label>
-                  Lote
-                  <input name="horizontalNumber" placeholder="12" />
-                </label>
-                <label>
-                  Rua
-                  <input name="street" placeholder="Rua das Palmeiras" />
-                </label>
-                <label>
-                  Numero
-                  <input name="addressNumber" placeholder="120" />
-                </label>
-              </div>
-            </fieldset>
-            <label>
-              Complemento
-              <input name="complement" placeholder="Observacao interna" />
-            </label>
-            <button type="submit">Adicionar unidade</button>
-          </form>
         </div>
       </section>
     </main>
