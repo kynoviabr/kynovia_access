@@ -44,6 +44,18 @@ function unitRegistrationMode(unit: Unit) {
   return mode === "horizontal" || mode === "vertical" ? mode : null;
 }
 
+function unitModeLabel(mode: "horizontal" | "vertical" | null) {
+  if (mode === "horizontal") {
+    return "Condominio horizontal";
+  }
+
+  if (mode === "vertical") {
+    return "Condominio vertical";
+  }
+
+  return "Tipo nao configurado";
+}
+
 function statusMessage(status?: string) {
   if (status === "unit_created") {
     return "Unidade criada.";
@@ -125,6 +137,9 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
   const units = (unitsData ?? []) as Unit[];
   const activeUnitMode = configuredUnitMode;
   const isHorizontal = activeUnitMode === "horizontal";
+  const createFormClassName = isHorizontal
+    ? "unit-create-form unit-create-form-horizontal"
+    : "unit-create-form unit-create-form-vertical";
   const success = statusMessage(params.status);
   const failure = errorMessage(params.status);
   const isMissingUnitMode = !configuredUnitMode;
@@ -183,26 +198,59 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
             Cadastre novas unidades, edite dados existentes e remova varias unidades selecionadas
             em uma unica acao.
           </p>
-          <form className="unit-create-form" action={createUnitAction}>
+          <div className="unit-mode-summary">
+            <span>Estrutura configurada</span>
+            <strong>{unitModeLabel(activeUnitMode)}</strong>
+            <small>
+              {isHorizontal
+                ? "Use Quadra, Lote, Endereco e Numero para cadastrar unidades."
+                : "Use Bloco, Andar e Unidade para cadastrar unidades."}
+            </small>
+          </div>
+          <form className={createFormClassName} action={createUnitAction}>
             <input type="hidden" name="condominiumId" value={condominium.id} />
             <input type="hidden" name="unitRegistrationMode" value={activeUnitMode ?? ""} />
             {activeUnitMode ? (
               <>
                 {isHorizontal ? (
                   <>
-                    <input name="horizontalBlock" placeholder="Quadra" />
-                    <input name="horizontalNumber" placeholder="Lote" required />
-                    <input name="street" placeholder="Rua" />
-                    <input name="addressNumber" placeholder="Numero" />
+                    <label>
+                      Quadra
+                      <input name="horizontalBlock" placeholder="Ex.: A" />
+                    </label>
+                    <label>
+                      Lote
+                      <input name="horizontalNumber" placeholder="Ex.: 30" required />
+                    </label>
+                    <label>
+                      Endereco
+                      <input name="street" placeholder="Rua, avenida ou alameda" />
+                    </label>
+                    <label>
+                      Numero
+                      <input name="addressNumber" placeholder="Ex.: 31" />
+                    </label>
                   </>
                 ) : (
                   <>
-                    <input name="verticalBlock" placeholder="Bloco" />
-                    <input name="verticalFloor" placeholder="Andar" />
-                    <input name="verticalNumber" placeholder="Unidade" required />
+                    <label>
+                      Bloco
+                      <input name="verticalBlock" placeholder="Ex.: Torre A" />
+                    </label>
+                    <label>
+                      Andar
+                      <input name="verticalFloor" placeholder="Ex.: 12" />
+                    </label>
+                    <label>
+                      Unidade
+                      <input name="verticalNumber" placeholder="Ex.: 1204" required />
+                    </label>
                   </>
                 )}
-                <input name="complement" placeholder="Complemento" />
+                <label>
+                  Complemento
+                  <input name="complement" placeholder="Observacao interna" />
+                </label>
                 <button type="submit">Adicionar unidade</button>
               </>
             ) : (
@@ -265,23 +313,37 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                             name="block"
                             defaultValue={unit.block ?? ""}
                             placeholder={rowIsHorizontal ? "Quadra" : "Bloco"}
+                            aria-label={rowIsHorizontal ? "Quadra" : "Bloco"}
                           />
-                          <input name="number" defaultValue={unit.number} required />
+                          <input
+                            name="number"
+                            defaultValue={unit.number}
+                            placeholder={rowIsHorizontal ? "Lote" : "Unidade"}
+                            aria-label={rowIsHorizontal ? "Lote" : "Unidade"}
+                            required
+                          />
                           {rowIsHorizontal ? (
                             <>
                               <input
                                 name="street"
                                 defaultValue={metadataValue(unit, "street")}
-                                placeholder="Rua"
+                                placeholder="Endereco"
+                                aria-label="Endereco"
                               />
                               <input
                                 name="addressNumber"
                                 defaultValue={metadataValue(unit, "addressNumber")}
                                 placeholder="Numero"
+                                aria-label="Numero"
                               />
                             </>
                           ) : (
-                            <input name="floor" defaultValue={unit.floor ?? ""} placeholder="Andar" />
+                            <input
+                              name="floor"
+                              defaultValue={unit.floor ?? ""}
+                              placeholder="Andar"
+                              aria-label="Andar"
+                            />
                           )}
                           <button type="submit">Salvar</button>
                         </form>

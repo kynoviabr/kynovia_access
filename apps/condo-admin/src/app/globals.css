@@ -601,13 +601,50 @@ button:disabled {
   background: #f8fafc;
   border: 1px solid #dbe4ef;
   border-radius: 8px;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
   margin: 0 0 16px;
   padding: 14px;
 }
 
+.unit-create-form-horizontal {
+  grid-template-columns: minmax(120px, 0.8fr) minmax(120px, 0.8fr) minmax(220px, 1.5fr) minmax(120px, 0.8fr) minmax(180px, 1fr) auto;
+}
+
+.unit-create-form-vertical {
+  grid-template-columns: minmax(140px, 1fr) minmax(120px, 0.8fr) minmax(140px, 1fr) minmax(180px, 1fr) auto;
+}
+
 .unit-create-form .empty-state {
   grid-column: 1 / -1;
+}
+
+.unit-mode-summary {
+  align-items: center;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
+  border-radius: 8px;
+  color: #164e63;
+  display: grid;
+  gap: 4px;
+  margin: 0 0 14px;
+  padding: 14px;
+}
+
+.unit-mode-summary span {
+  color: #0f766e;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.unit-mode-summary strong {
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.unit-mode-summary small {
+  color: #475569;
+  font-weight: 700;
 }
 
 .unit-row-form {
@@ -781,6 +818,8 @@ th {
   .form-row.split,
   .settings-grid,
   .inline-form,
+  .unit-create-form-horizontal,
+  .unit-create-form-vertical,
   .unit-row-form,
   .record-grid,
   .record-subgrid {
