@@ -382,6 +382,54 @@ button.secondary,
   grid-template-columns: minmax(120px, 0.45fr) minmax(180px, 1fr);
 }
 
+.choice-fieldset {
+  border: 1px solid #dbe4ef;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 14px;
+}
+
+.choice-fieldset legend {
+  color: #334155;
+  font-size: 0.9rem;
+  font-weight: 800;
+  padding: 0 6px;
+}
+
+.choice-card {
+  align-items: flex-start;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  padding: 12px;
+}
+
+.choice-card input[type="radio"] {
+  accent-color: #0f766e;
+  height: 16px;
+  margin: 2px 0 0;
+  min-height: 16px;
+  padding: 0;
+  width: 16px;
+}
+
+.choice-card span {
+  display: grid;
+  gap: 4px;
+}
+
+.choice-card small {
+  color: #64748b;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
 .filter-form {
   align-items: end;
   grid-template-columns: minmax(220px, 1fr) auto auto;
