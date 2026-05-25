@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   formatCep,
   formatCnpj,
@@ -24,6 +24,7 @@ function RequiredLabel({ children }: { children: string }) {
 }
 
 export function SettingsCondominiumFields({ condominium }: SettingsCondominiumFieldsProps) {
+  const numberInputRef = useRef<HTMLInputElement>(null);
   const [cnpj, setCnpj] = useState(formatCnpj(condominium.cnpj));
   const [cnpjError, setCnpjError] = useState("");
   const [postalCode, setPostalCode] = useState(formatCep(condominium.postalCode));
@@ -87,9 +88,7 @@ export function SettingsCondominiumFields({ condominium }: SettingsCondominiumFi
           setState(data.uf);
         }
 
-        window.setTimeout(() => {
-          document.querySelector<HTMLInputElement>('input[name="number"]')?.focus();
-        }, 0);
+        window.setTimeout(() => numberInputRef.current?.focus(), 50);
       } catch {
         // CEP lookup is a convenience; manual address entry remains available.
       }
@@ -162,7 +161,13 @@ export function SettingsCondominiumFields({ condominium }: SettingsCondominiumFi
       <div className="form-row settings-paired-row">
         <label>
           <RequiredLabel>Numero</RequiredLabel>
-          <input name="number" required value={number} onChange={(event) => setNumber(event.target.value)} />
+          <input
+            name="number"
+            ref={numberInputRef}
+            required
+            value={number}
+            onChange={(event) => setNumber(event.target.value)}
+          />
         </label>
         <label>
           Complemento
