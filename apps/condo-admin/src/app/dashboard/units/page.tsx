@@ -243,114 +243,119 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
               Excluir selecionadas
             </button>
           </div>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Selecionar</th>
-                  <th>{isHorizontal ? "Quadra" : "Bloco"}</th>
-                  <th>{isHorizontal ? "Lote" : "Andar"}</th>
-                  <th>{isHorizontal ? "Endereco" : "Unidade"}</th>
-                  {isHorizontal ? <th>Numero</th> : null}
-                  <th>Complemento</th>
-                  <th>Salvar</th>
-                </tr>
-              </thead>
-              <tbody>
-                {units.map((unit) => {
-                  const rowMode = configuredUnitMode ?? unitRegistrationMode(unit);
-                  const rowIsHorizontal = (rowMode ?? activeUnitMode) === "horizontal";
+          <div className="unit-list-wrap">
+            <div
+              className={
+                isHorizontal
+                  ? "unit-list-header unit-list-header-horizontal"
+                  : "unit-list-header unit-list-header-vertical"
+              }
+            >
+              <span>Selecionar</span>
+              <span>{isHorizontal ? "Quadra" : "Bloco"}</span>
+              <span>{isHorizontal ? "Lote" : "Andar"}</span>
+              <span>{isHorizontal ? "Endereco" : "Unidade"}</span>
+              {isHorizontal ? <span>Numero</span> : null}
+              <span>Complemento</span>
+              <span>Salvar</span>
+            </div>
+            <div className="unit-list-rows">
+              {units.map((unit) => {
+                const rowMode = configuredUnitMode ?? unitRegistrationMode(unit);
+                const rowIsHorizontal = (rowMode ?? activeUnitMode) === "horizontal";
 
-                  return (
-                    <tr key={unit.id}>
-                      <td>
-                        <input
-                          aria-label={`Selecionar unidade ${unit.number}`}
-                          form="delete-selected-units"
-                          name="unitIds"
-                          type="checkbox"
-                          value={unit.id}
-                        />
-                      </td>
-                      <td colSpan={rowIsHorizontal ? 6 : 5}>
-                        <form
-                          className={
-                            rowIsHorizontal
-                              ? "unit-row-form unit-row-form-horizontal"
-                              : "unit-row-form unit-row-form-vertical"
-                          }
-                          action={updateUnitAction}
-                        >
-                          <input type="hidden" name="condominiumId" value={condominium.id} />
-                          <input type="hidden" name="unitId" value={unit.id} />
+                return (
+                  <div
+                    className={
+                      rowIsHorizontal
+                        ? "unit-list-row unit-list-row-horizontal"
+                        : "unit-list-row unit-list-row-vertical"
+                    }
+                    key={unit.id}
+                  >
+                    <input
+                      aria-label={`Selecionar unidade ${unit.number}`}
+                      form="delete-selected-units"
+                      name="unitIds"
+                      type="checkbox"
+                      value={unit.id}
+                    />
+                    <form
+                      className={
+                        rowIsHorizontal
+                          ? "unit-row-form unit-row-form-horizontal"
+                          : "unit-row-form unit-row-form-vertical"
+                      }
+                      action={updateUnitAction}
+                    >
+                      <input type="hidden" name="condominiumId" value={condominium.id} />
+                      <input type="hidden" name="unitId" value={unit.id} />
+                      <input
+                        type="hidden"
+                        name="unitRegistrationMode"
+                        value={rowMode ?? activeUnitMode}
+                      />
+                      <input
+                        name="block"
+                        defaultValue={unit.block ?? ""}
+                        maxLength={rowIsHorizontal ? 2 : undefined}
+                        placeholder={rowIsHorizontal ? "Quadra" : "Bloco"}
+                        aria-label={rowIsHorizontal ? "Quadra" : "Bloco"}
+                      />
+                      {rowIsHorizontal ? (
+                        <>
                           <input
-                            type="hidden"
-                            name="unitRegistrationMode"
-                            value={rowMode ?? activeUnitMode}
+                            name="number"
+                            defaultValue={unit.number}
+                            maxLength={3}
+                            placeholder="Lote"
+                            aria-label="Lote"
+                            required
                           />
                           <input
-                            name="block"
-                            defaultValue={unit.block ?? ""}
-                            maxLength={rowIsHorizontal ? 2 : undefined}
-                            placeholder={rowIsHorizontal ? "Quadra" : "Bloco"}
-                            aria-label={rowIsHorizontal ? "Quadra" : "Bloco"}
+                            name="street"
+                            defaultValue={metadataValue(unit, "street")}
+                            placeholder="Endereco"
+                            aria-label="Endereco"
                           />
-                          {rowIsHorizontal ? (
-                            <>
-                              <input
-                                name="number"
-                                defaultValue={unit.number}
-                                maxLength={3}
-                                placeholder="Lote"
-                                aria-label="Lote"
-                                required
-                              />
-                              <input
-                                name="street"
-                                defaultValue={metadataValue(unit, "street")}
-                                placeholder="Endereco"
-                                aria-label="Endereco"
-                              />
-                              <input
-                                name="addressNumber"
-                                defaultValue={metadataValue(unit, "addressNumber")}
-                                maxLength={5}
-                                placeholder="Numero"
-                                aria-label="Numero"
-                              />
-                            </>
-                          ) : (
-                            <>
-                              <input
-                                name="floor"
-                                defaultValue={unit.floor ?? ""}
-                                placeholder="Andar"
-                                aria-label="Andar"
-                              />
-                              <input
-                                name="number"
-                                defaultValue={unit.number}
-                                placeholder="Unidade"
-                                aria-label="Unidade"
-                                required
-                              />
-                            </>
-                          )}
                           <input
-                            name="complement"
-                            defaultValue={metadataValue(unit, "complement")}
-                            maxLength={4}
-                            placeholder="Complemento"
-                            aria-label="Complemento"
+                            name="addressNumber"
+                            defaultValue={metadataValue(unit, "addressNumber")}
+                            maxLength={5}
+                            placeholder="Numero"
+                            aria-label="Numero"
                           />
-                          <button type="submit">Salvar</button>
-                        </form>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </>
+                      ) : (
+                        <>
+                          <input
+                            name="floor"
+                            defaultValue={unit.floor ?? ""}
+                            placeholder="Andar"
+                            aria-label="Andar"
+                          />
+                          <input
+                            name="number"
+                            defaultValue={unit.number}
+                            placeholder="Unidade"
+                            aria-label="Unidade"
+                            required
+                          />
+                        </>
+                      )}
+                      <input
+                        name="complement"
+                        defaultValue={metadataValue(unit, "complement")}
+                        maxLength={4}
+                        placeholder="Complemento"
+                        aria-label="Complemento"
+                      />
+                      <button type="submit">Salvar</button>
+                    </form>
+                  </div>
+                );
+              })}
+            </div>
           </div>
           {!units.length ? <p className="muted">Nenhuma unidade encontrada.</p> : null}
       </section>
