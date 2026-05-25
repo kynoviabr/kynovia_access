@@ -296,6 +296,43 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
           <h2>Novo morador</h2>
           <form className="admin-form" action={createResidentAction}>
             <input name="condominiumId" type="hidden" value={condominium.id} />
+            <div className="form-block">
+              <strong>Unidade do morador</strong>
+              <p className="field-hint">
+                {configuredUnitMode === "horizontal"
+                  ? "Selecione pela estrutura Quadra, Lote, Rua e Numero."
+                  : "Selecione pela estrutura Bloco, Andar e Unidade."}
+              </p>
+              <div className="field-preview">
+                {(configuredUnitMode === "horizontal"
+                  ? ["Quadra", "Lote", "Rua", "Numero"]
+                  : ["Bloco", "Andar", "Unidade"]
+                ).map((field) => (
+                  <span key={field}>{field}</span>
+                ))}
+              </div>
+              <label className="structured-select-field">
+                Unidade
+                <select name="unitId" required>
+                  <option value="">Selecione a unidade</option>
+                  {units.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unitLabel(unit, configuredUnitMode)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Relacao com a unidade
+                <select name="relationship" defaultValue="resident">
+                  {residentUnitRelationships.map((relationship) => (
+                    <option key={relationship} value={relationship}>
+                      {optionLabel(relationship)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
             <label>
               Nome completo
               <input name="fullName" required placeholder="Maria Silva" />

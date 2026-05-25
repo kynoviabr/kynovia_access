@@ -69,24 +69,50 @@ export async function createResidentAction(formData: FormData) {
   const condominiumId = formValue(formData, "condominiumId");
   const fullName = formValue(formData, "fullName");
   const status = formValue(formData, "status") || "active";
+  const unitId = formValue(formData, "unitId");
+  const relationship = formValue(formData, "relationship") || "resident";
 
-  if (!condominiumId || !fullName || !isResidentStatus(status)) {
+  if (
+    !condominiumId ||
+    !fullName ||
+    !unitId ||
+    !isResidentStatus(status) ||
+    !isResidentUnitRelationship(relationship)
+  ) {
     redirectToResidents("missing_resident_fields");
   }
 
   const { profile, supabase } = await ensureCondominiumAccess(condominiumId);
-  const { error } = await supabase.from("residents").insert({
+  const { data: resident, error } = await supabase
+    .from("residents")
+    .insert({
+      tenant_id: profile.tenantId,
+      condominium_id: condominiumId,
+      full_name: fullName,
+      document: normalizeNullableText(formValue(formData, "document")),
+      phone: normalizeNullableText(normalizePhone(formValue(formData, "phone"))),
+      email: normalizeNullableText(formValue(formData, "email")),
+      ...statusFields(status, formValue(formData, "blockReason"))
+    })
+    .select("id")
+    .single();
+
+  const residentId = resident?.id ?? "";
+  if (error || !residentId) {
+    redirectToResidents("create_resident_failed");
+  }
+
+  const { error: linkError } = await supabase.from("resident_units").insert({
     tenant_id: profile.tenantId,
     condominium_id: condominiumId,
-    full_name: fullName,
-    document: normalizeNullableText(formValue(formData, "document")),
-    phone: normalizeNullableText(normalizePhone(formValue(formData, "phone"))),
-    email: normalizeNullableText(formValue(formData, "email")),
-    ...statusFields(status, formValue(formData, "blockReason"))
+    resident_id: residentId,
+    unit_id: unitId,
+    relationship,
+    is_primary: true
   });
 
-  if (error) {
-    redirectToResidents("create_resident_failed");
+  if (linkError) {
+    redirectToResidents("link_unit_failed");
   }
 
   redirectToResidents("resident_created");

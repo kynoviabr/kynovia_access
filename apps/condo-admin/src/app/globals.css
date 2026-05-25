@@ -382,6 +382,20 @@ button.secondary,
   grid-template-columns: minmax(120px, 0.45fr) minmax(180px, 1fr);
 }
 
+.form-block {
+  background: #f8fafc;
+  border: 1px solid #dbe4ef;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.form-block > strong {
+  color: #0f172a;
+  font-size: 0.98rem;
+}
+
 .choice-fieldset {
   border: 1px solid #dbe4ef;
   border-radius: 8px;
