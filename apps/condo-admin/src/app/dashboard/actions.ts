@@ -301,3 +301,27 @@ export async function deleteUnitAction(formData: FormData) {
 
   redirectToUnits("unit_deleted");
 }
+
+export async function deleteSelectedUnitsAction(formData: FormData) {
+  const condominiumId = formValue(formData, "condominiumId");
+  const unitIds = formData
+    .getAll("unitIds")
+    .filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+
+  if (!condominiumId || unitIds.length === 0) {
+    redirectToUnits("missing_unit_id");
+  }
+
+  const { supabase } = await ensureCondominiumAccess(condominiumId, unitManagerRoles);
+  const { error } = await supabase
+    .from("units")
+    .delete()
+    .eq("condominium_id", condominiumId)
+    .in("id", unitIds);
+
+  if (error) {
+    redirectToUnits("delete_unit_failed");
+  }
+
+  redirectToUnits("unit_deleted");
+}

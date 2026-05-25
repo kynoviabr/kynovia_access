@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
   createUnitAction,
-  deleteUnitAction,
+  deleteSelectedUnitsAction,
   updateUnitAction
 } from "../actions";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
@@ -177,57 +177,33 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
         </form>
       </section>
 
-      <section className="admin-grid">
-        <div className="admin-section">
-          <h2>Cadastrar unidade</h2>
+      <section className="admin-section">
+          <h2>Unidades cadastradas</h2>
           <p className="muted">
-            Cadastro de unidades no formato definido em Configuracoes.
+            Cadastre novas unidades, edite dados existentes e remova varias unidades selecionadas
+            em uma unica acao.
           </p>
-          <form className="admin-form" action={createUnitAction}>
+          <form className="unit-create-form" action={createUnitAction}>
             <input type="hidden" name="condominiumId" value={condominium.id} />
             <input type="hidden" name="unitRegistrationMode" value={activeUnitMode ?? ""} />
             {activeUnitMode ? (
               <>
                 {isHorizontal ? (
                   <>
-                    <label>
-                      Quadra
-                      <input name="horizontalBlock" placeholder="Quadra A" />
-                    </label>
-                    <label>
-                      Lote
-                      <input name="horizontalNumber" placeholder="12" required />
-                    </label>
-                    <label>
-                      Rua
-                      <input name="street" placeholder="Rua das Palmeiras" />
-                    </label>
-                    <label>
-                      Numero
-                      <input name="addressNumber" placeholder="120" />
-                    </label>
+                    <input name="horizontalBlock" placeholder="Quadra" />
+                    <input name="horizontalNumber" placeholder="Lote" required />
+                    <input name="street" placeholder="Rua" />
+                    <input name="addressNumber" placeholder="Numero" />
                   </>
                 ) : (
                   <>
-                    <label>
-                      Bloco
-                      <input name="verticalBlock" placeholder="A" />
-                    </label>
-                    <label>
-                      Andar
-                      <input name="verticalFloor" placeholder="1" />
-                    </label>
-                    <label>
-                      Unidade
-                      <input name="verticalNumber" placeholder="101" required />
-                    </label>
+                    <input name="verticalBlock" placeholder="Bloco" />
+                    <input name="verticalFloor" placeholder="Andar" />
+                    <input name="verticalNumber" placeholder="Unidade" required />
                   </>
                 )}
-                <label>
-                  Complemento
-                  <input name="complement" placeholder="Observacao interna" />
-                </label>
-                <button type="submit">Cadastrar unidade</button>
+                <input name="complement" placeholder="Complemento" />
+                <button type="submit">Adicionar unidade</button>
               </>
             ) : (
               <div className="empty-state">
@@ -236,18 +212,28 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
               </div>
             )}
           </form>
-        </div>
-
-        <div className="admin-section">
-          <h2>Unidades cadastradas</h2>
+          <form action={deleteSelectedUnitsAction} id="delete-selected-units">
+            <input type="hidden" name="condominiumId" value={condominium.id} />
+          </form>
+          <div className="bulk-actions">
+            <button
+              className="secondary"
+              disabled={!units.length}
+              form="delete-selected-units"
+              type="submit"
+            >
+              Excluir selecionadas
+            </button>
+          </div>
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
+                  <th>Selecionar</th>
                   <th>{isHorizontal ? "Quadra" : "Bloco"}</th>
                   <th>{isHorizontal ? "Lote" : "Unidade"}</th>
                   <th>{isHorizontal ? "Rua / Numero" : "Andar"}</th>
-                  <th>Acoes</th>
+                  <th>Salvar</th>
                 </tr>
               </thead>
               <tbody>
@@ -257,8 +243,17 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
 
                   return (
                     <tr key={unit.id}>
+                      <td>
+                        <input
+                          aria-label={`Selecionar unidade ${unit.number}`}
+                          form="delete-selected-units"
+                          name="unitIds"
+                          type="checkbox"
+                          value={unit.id}
+                        />
+                      </td>
                       <td colSpan={4}>
-                        <form className="inline-form" action={updateUnitAction}>
+                        <form className="unit-row-form" action={updateUnitAction}>
                           <input type="hidden" name="condominiumId" value={condominium.id} />
                           <input type="hidden" name="unitId" value={unit.id} />
                           <input
@@ -289,17 +284,6 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                             <input name="floor" defaultValue={unit.floor ?? ""} placeholder="Andar" />
                           )}
                           <button type="submit">Salvar</button>
-                          <button
-                            className="secondary"
-                            form={`delete-unit-${unit.id}`}
-                            type="submit"
-                          >
-                            Remover
-                          </button>
-                        </form>
-                        <form action={deleteUnitAction} id={`delete-unit-${unit.id}`}>
-                          <input type="hidden" name="condominiumId" value={condominium.id} />
-                          <input type="hidden" name="unitId" value={unit.id} />
                         </form>
                       </td>
                     </tr>
@@ -309,7 +293,6 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
             </table>
           </div>
           {!units.length ? <p className="muted">Nenhuma unidade encontrada.</p> : null}
-        </div>
       </section>
     </main>
   );
