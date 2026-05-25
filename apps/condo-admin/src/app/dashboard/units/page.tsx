@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   createUnitAction,
   deleteSelectedUnitsAction,
@@ -42,18 +43,6 @@ function metadataValue(unit: Unit, key: string) {
 function unitRegistrationMode(unit: Unit) {
   const mode = metadataValue(unit, "registrationMode");
   return mode === "horizontal" || mode === "vertical" ? mode : null;
-}
-
-function unitModeLabel(mode: "horizontal" | "vertical" | null) {
-  if (mode === "horizontal") {
-    return "Condominio horizontal";
-  }
-
-  if (mode === "vertical") {
-    return "Condominio vertical";
-  }
-
-  return "Tipo nao configurado";
 }
 
 function statusMessage(status?: string) {
@@ -135,14 +124,19 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
 
   const { data: unitsData, error } = await query;
   const units = (unitsData ?? []) as Unit[];
-  const activeUnitMode = configuredUnitMode;
+  const inferredUnitMode = units.map(unitRegistrationMode).find(Boolean) ?? null;
+  const activeUnitMode = configuredUnitMode ?? inferredUnitMode;
+
+  if (!activeUnitMode) {
+    redirect("/dashboard/settings?onboarding=unit_structure");
+  }
+
   const isHorizontal = activeUnitMode === "horizontal";
   const createFormClassName = isHorizontal
     ? "unit-create-form unit-create-form-horizontal"
     : "unit-create-form unit-create-form-vertical";
   const success = statusMessage(params.status);
   const failure = errorMessage(params.status);
-  const isMissingUnitMode = !configuredUnitMode;
 
   return (
     <main className="admin-shell">
@@ -163,17 +157,6 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
       {error ? <p className="form-error">Falha ao carregar unidades.</p> : null}
-      {isMissingUnitMode ? (
-        <section className="onboarding-callout">
-          <strong>Tipo de condominio pendente</strong>
-          <p>
-            Configure se o condominio e vertical ou horizontal antes de cadastrar unidades.
-          </p>
-          <Link className="button-link secondary" href="/dashboard/settings?onboarding=unit_structure">
-            Configurar em Configuracoes
-          </Link>
-        </section>
-      ) : null}
 
       <section className="toolbar">
         <form className="filter-form">
@@ -198,55 +181,27 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
             Cadastre novas unidades, edite dados existentes e remova varias unidades selecionadas
             em uma unica acao.
           </p>
-          <div className="unit-mode-summary">
-            <span>Estrutura configurada</span>
-            <strong>{unitModeLabel(activeUnitMode)}</strong>
-            <small>
-              {isHorizontal
-                ? "Use Quadra, Lote, Endereco e Numero para cadastrar unidades."
-                : "Use Bloco, Andar e Unidade para cadastrar unidades."}
-            </small>
-          </div>
           <form className={createFormClassName} action={createUnitAction}>
             <input type="hidden" name="condominiumId" value={condominium.id} />
-            <input type="hidden" name="unitRegistrationMode" value={activeUnitMode ?? ""} />
-            {activeUnitMode ? (
+            <input type="hidden" name="unitRegistrationMode" value={activeUnitMode} />
+            {isHorizontal ? (
               <>
-                {isHorizontal ? (
-                  <>
-                    <label>
-                      Quadra
-                      <input name="horizontalBlock" placeholder="Ex.: A" />
-                    </label>
-                    <label>
-                      Lote
-                      <input name="horizontalNumber" placeholder="Ex.: 30" required />
-                    </label>
-                    <label>
-                      Endereco
-                      <input name="street" placeholder="Rua, avenida ou alameda" />
-                    </label>
-                    <label>
-                      Numero
-                      <input name="addressNumber" placeholder="Ex.: 31" />
-                    </label>
-                  </>
-                ) : (
-                  <>
-                    <label>
-                      Bloco
-                      <input name="verticalBlock" placeholder="Ex.: Torre A" />
-                    </label>
-                    <label>
-                      Andar
-                      <input name="verticalFloor" placeholder="Ex.: 12" />
-                    </label>
-                    <label>
-                      Unidade
-                      <input name="verticalNumber" placeholder="Ex.: 1204" required />
-                    </label>
-                  </>
-                )}
+                <label>
+                  Quadra
+                  <input name="horizontalBlock" placeholder="Ex.: A" />
+                </label>
+                <label>
+                  Lote
+                  <input name="horizontalNumber" placeholder="Ex.: 30" required />
+                </label>
+                <label>
+                  Endereco
+                  <input name="street" placeholder="Rua, avenida ou alameda" />
+                </label>
+                <label>
+                  Numero
+                  <input name="addressNumber" placeholder="Ex.: 31" />
+                </label>
                 <label>
                   Complemento
                   <input name="complement" placeholder="Observacao interna" />
@@ -254,10 +209,25 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                 <button type="submit">Adicionar unidade</button>
               </>
             ) : (
-              <div className="empty-state">
-                <strong>Escolha o tipo em Configuracoes.</strong>
-                <p>Depois disso, o formulario de cadastro de unidades aparece aqui.</p>
-              </div>
+              <>
+                <label>
+                  Bloco
+                  <input name="verticalBlock" placeholder="Ex.: Torre A" />
+                </label>
+                <label>
+                  Andar
+                  <input name="verticalFloor" placeholder="Ex.: 12" />
+                </label>
+                <label>
+                  Unidade
+                  <input name="verticalNumber" placeholder="Ex.: 1204" required />
+                </label>
+                <label>
+                  Complemento
+                  <input name="complement" placeholder="Observacao interna" />
+                </label>
+                <button type="submit">Adicionar unidade</button>
+              </>
             )}
           </form>
           <form action={deleteSelectedUnitsAction} id="delete-selected-units">
@@ -279,15 +249,16 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                 <tr>
                   <th>Selecionar</th>
                   <th>{isHorizontal ? "Quadra" : "Bloco"}</th>
-                  <th>{isHorizontal ? "Lote" : "Unidade"}</th>
-                  <th>{isHorizontal ? "Rua / Numero" : "Andar"}</th>
+                  <th>{isHorizontal ? "Lote" : "Andar"}</th>
+                  <th>{isHorizontal ? "Endereco" : "Unidade"}</th>
+                  {isHorizontal ? <th>Numero</th> : null}
                   <th>Salvar</th>
                 </tr>
               </thead>
               <tbody>
                 {units.map((unit) => {
                   const rowMode = configuredUnitMode ?? unitRegistrationMode(unit);
-                  const rowIsHorizontal = rowMode === "horizontal";
+                  const rowIsHorizontal = (rowMode ?? activeUnitMode) === "horizontal";
 
                   return (
                     <tr key={unit.id}>
@@ -300,14 +271,21 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                           value={unit.id}
                         />
                       </td>
-                      <td colSpan={4}>
-                        <form className="unit-row-form" action={updateUnitAction}>
+                      <td colSpan={rowIsHorizontal ? 5 : 4}>
+                        <form
+                          className={
+                            rowIsHorizontal
+                              ? "unit-row-form unit-row-form-horizontal"
+                              : "unit-row-form unit-row-form-vertical"
+                          }
+                          action={updateUnitAction}
+                        >
                           <input type="hidden" name="condominiumId" value={condominium.id} />
                           <input type="hidden" name="unitId" value={unit.id} />
                           <input
                             type="hidden"
                             name="unitRegistrationMode"
-                            value={rowMode ?? ""}
+                            value={rowMode ?? activeUnitMode}
                           />
                           <input
                             name="block"
@@ -315,15 +293,15 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                             placeholder={rowIsHorizontal ? "Quadra" : "Bloco"}
                             aria-label={rowIsHorizontal ? "Quadra" : "Bloco"}
                           />
-                          <input
-                            name="number"
-                            defaultValue={unit.number}
-                            placeholder={rowIsHorizontal ? "Lote" : "Unidade"}
-                            aria-label={rowIsHorizontal ? "Lote" : "Unidade"}
-                            required
-                          />
                           {rowIsHorizontal ? (
                             <>
+                              <input
+                                name="number"
+                                defaultValue={unit.number}
+                                placeholder="Lote"
+                                aria-label="Lote"
+                                required
+                              />
                               <input
                                 name="street"
                                 defaultValue={metadataValue(unit, "street")}
@@ -338,12 +316,21 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                               />
                             </>
                           ) : (
-                            <input
-                              name="floor"
-                              defaultValue={unit.floor ?? ""}
-                              placeholder="Andar"
-                              aria-label="Andar"
-                            />
+                            <>
+                              <input
+                                name="floor"
+                                defaultValue={unit.floor ?? ""}
+                                placeholder="Andar"
+                                aria-label="Andar"
+                              />
+                              <input
+                                name="number"
+                                defaultValue={unit.number}
+                                placeholder="Unidade"
+                                aria-label="Unidade"
+                                required
+                              />
+                            </>
                           )}
                           <button type="submit">Salvar</button>
                         </form>

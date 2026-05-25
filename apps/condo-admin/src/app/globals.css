@@ -620,43 +620,16 @@ button:disabled {
   grid-template-columns: minmax(140px, 1fr) minmax(120px, 0.8fr) minmax(140px, 1fr) minmax(180px, 1fr) auto;
 }
 
-.unit-create-form .empty-state {
-  grid-column: 1 / -1;
-}
-
-.unit-mode-summary {
-  align-items: center;
-  background: #ecfeff;
-  border: 1px solid #a5f3fc;
-  border-radius: 8px;
-  color: #164e63;
-  display: grid;
-  gap: 4px;
-  margin: 0 0 14px;
-  padding: 14px;
-}
-
-.unit-mode-summary span {
-  color: #0f766e;
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0;
-  text-transform: uppercase;
-}
-
-.unit-mode-summary strong {
-  color: #0f172a;
-  font-size: 1rem;
-}
-
-.unit-mode-summary small {
-  color: #475569;
-  font-weight: 700;
-}
-
 .unit-row-form {
   align-items: center;
-  grid-template-columns: repeat(3, minmax(110px, 1fr)) auto;
+}
+
+.unit-row-form-horizontal {
+  grid-template-columns: minmax(110px, 0.8fr) minmax(110px, 0.8fr) minmax(220px, 1.4fr) minmax(110px, 0.8fr) auto;
+}
+
+.unit-row-form-vertical {
+  grid-template-columns: minmax(140px, 1fr) minmax(110px, 0.8fr) minmax(140px, 1fr) auto;
 }
 
 .bulk-actions {
