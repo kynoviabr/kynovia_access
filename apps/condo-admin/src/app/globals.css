@@ -613,7 +613,7 @@ button:disabled {
 }
 
 .unit-create-form-horizontal {
-  grid-template-columns: 48px 64px minmax(260px, 1fr) 80px 64px max-content;
+  grid-template-columns: 54px 70px minmax(300px, 1fr) 92px 76px max-content;
 }
 
 .unit-create-form-vertical {
@@ -636,12 +636,12 @@ button:disabled {
   align-items: center;
   column-gap: 12px;
   display: grid;
-  min-width: 760px;
+  min-width: 860px;
 }
 
 .unit-list-header-horizontal,
 .unit-list-row-horizontal {
-  grid-template-columns: 100px 48px 64px minmax(260px, 1fr) 80px 64px max-content;
+  grid-template-columns: 90px 54px 70px minmax(300px, 1fr) 92px 76px max-content;
 }
 
 .unit-list-header-vertical,
@@ -668,11 +668,11 @@ button:disabled {
 }
 
 .unit-list-row > .unit-row-form {
-  grid-column: 2 / -1;
+  display: contents;
 }
 
 .unit-row-form-horizontal {
-  grid-template-columns: 48px 64px minmax(260px, 1fr) 80px 64px max-content;
+  grid-template-columns: 54px 70px minmax(300px, 1fr) 92px 76px max-content;
 }
 
 .unit-row-form-vertical {
@@ -684,6 +684,12 @@ button:disabled {
   min-height: 44px;
   padding: 0 14px;
   width: auto;
+}
+
+.unit-list-row .unit-row-form button {
+  min-width: auto;
+  padding: 0 14px;
+  width: max-content;
 }
 
 .bulk-actions {
