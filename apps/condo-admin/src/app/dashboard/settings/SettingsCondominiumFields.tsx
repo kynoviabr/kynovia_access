@@ -51,6 +51,56 @@ export function SettingsCondominiumFields({ condominium }: SettingsCondominiumFi
   }, [postalCode]);
 
   useEffect(() => {
+    const digits = onlyDigits(postalCode);
+
+    if (digits.length !== 8) {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function fillAddressFromCep() {
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`, {
+          signal: controller.signal
+        });
+        const data = (await response.json()) as {
+          erro?: boolean;
+          localidade?: string;
+          logradouro?: string;
+          uf?: string;
+        };
+
+        if (data.erro) {
+          return;
+        }
+
+        if (data.logradouro) {
+          setFullAddress(data.logradouro);
+        }
+
+        if (data.localidade) {
+          setCity(data.localidade);
+        }
+
+        if (data.uf && brazilStates.includes(data.uf as (typeof brazilStates)[number])) {
+          setState(data.uf);
+        }
+
+        window.setTimeout(() => {
+          document.querySelector<HTMLInputElement>('input[name="number"]')?.focus();
+        }, 0);
+      } catch {
+        // CEP lookup is a convenience; manual address entry remains available.
+      }
+    }
+
+    void fillAddressFromCep();
+
+    return () => controller.abort();
+  }, [postalCode]);
+
+  useEffect(() => {
     if (state && state in timezoneByState) {
       setTimezone(timezoneByState[state as keyof typeof timezoneByState]);
     }
