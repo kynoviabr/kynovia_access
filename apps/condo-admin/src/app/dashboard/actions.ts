@@ -32,6 +32,16 @@ function asRecord(value: unknown) {
     : {};
 }
 
+function formatCnpjForStorage(value: string) {
+  const digits = normalizeDigits(value).slice(0, 14);
+
+  return digits
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
 function unitRegistrationMode(formData: FormData) {
   const mode = formValue(formData, "unitRegistrationMode");
   return unitRegistrationModes.includes(mode as (typeof unitRegistrationModes)[number])
@@ -85,7 +95,6 @@ export async function updateCondominiumAction(formData: FormData) {
   const name = formValue(formData, "name");
   const timezone = formValue(formData, "timezone") || "America/Sao_Paulo";
   const cnpjInput = formValue(formData, "cnpj");
-  const cnpj = normalizeDigits(cnpjInput);
   const postalCodeInput = formValue(formData, "postalCode");
   const phoneInput = formValue(formData, "phone");
   const whatsappInput = formValue(formData, "whatsapp");
@@ -124,23 +133,50 @@ export async function updateCondominiumAction(formData: FormData) {
     settingsManagerRoles
   );
   const existingMetadata = asRecord(condominium.metadata);
+  const existingClient = asRecord(existingMetadata.client);
+  const existingAddress = asRecord(existingClient.address);
+  const formattedCnpj = formatCnpjForStorage(cnpjInput);
+  const normalizedPhone = normalizePhone(phoneInput);
+  const normalizedWhatsapp = normalizePhone(whatsappInput);
+  const normalizedPostalCode = normalizeDigits(postalCodeInput);
+  const fullAddress = formValue(formData, "fullAddress");
+  const addressNumber = formValue(formData, "number");
+  const complement = formValue(formData, "complement");
+  const city = formValue(formData, "city");
   const { error } = await supabase
     .from("condominiums")
     .update({
       metadata: {
         ...existingMetadata,
-        city: formValue(formData, "city"),
-        cnpj,
-        complement: formValue(formData, "complement"),
+        city,
+        client: {
+          ...existingClient,
+          address: {
+            ...existingAddress,
+            city,
+            complement,
+            line: fullAddress,
+            number: addressNumber,
+            postal_code: postalCodeInput,
+            state
+          },
+          cnpj: formattedCnpj,
+          email,
+          phone: phoneInput,
+          trade_name: name,
+          whatsapp: whatsappInput
+        },
+        cnpj: formattedCnpj,
+        complement,
         email,
-        fullAddress: formValue(formData, "fullAddress"),
-        number: formValue(formData, "number"),
-        phone: normalizePhone(phoneInput),
-        postalCode: normalizeDigits(postalCodeInput),
+        fullAddress,
+        number: addressNumber,
+        phone: normalizedPhone,
+        postalCode: normalizedPostalCode,
         state,
         unitRegistrationConfiguredAt: new Date().toISOString(),
         unitRegistrationMode: mode,
-        whatsapp: normalizePhone(whatsappInput)
+        whatsapp: normalizedWhatsapp
       },
       name,
       timezone,

@@ -49,26 +49,42 @@ function mapCondominium(row: CondominiumRow): ActiveCondominium {
     row.metadata && typeof row.metadata === "object" && !Array.isArray(row.metadata)
       ? (row.metadata as Record<string, unknown>)
       : {};
+  const client =
+    metadata.client && typeof metadata.client === "object" && !Array.isArray(metadata.client)
+      ? (metadata.client as Record<string, unknown>)
+      : {};
+  const address =
+    client.address && typeof client.address === "object" && !Array.isArray(client.address)
+      ? (client.address as Record<string, unknown>)
+      : {};
   const value = (key: string) => {
     const item = metadata[key];
+    return typeof item === "string" ? item : "";
+  };
+  const clientValue = (key: string) => {
+    const item = client[key];
+    return typeof item === "string" ? item : "";
+  };
+  const addressValue = (key: string) => {
+    const item = address[key];
     return typeof item === "string" ? item : "";
   };
   const metadataUnitRegistrationMode = value("unitRegistrationMode");
   const unitRegistrationMode = row.unit_registration_mode ?? metadataUnitRegistrationMode;
 
   return {
-    city: value("city"),
-    cnpj: value("cnpj"),
-    complement: value("complement"),
-    email: value("email"),
-    fullAddress: value("fullAddress"),
+    city: value("city") || addressValue("city"),
+    cnpj: value("cnpj") || clientValue("cnpj"),
+    complement: value("complement") || addressValue("complement"),
+    email: value("email") || clientValue("email"),
+    fullAddress: value("fullAddress") || addressValue("line"),
     id: row.id,
     name: row.name,
-    number: value("number"),
-    phone: value("phone"),
-    postalCode: value("postalCode"),
+    number: value("number") || addressValue("number"),
+    phone: value("phone") || clientValue("phone"),
+    postalCode: value("postalCode") || addressValue("postal_code"),
     slug: row.slug,
-    state: value("state"),
+    state: value("state") || addressValue("state"),
     timezone: row.timezone,
     unitRegistrationMode:
       unitRegistrationMode === "horizontal" || unitRegistrationMode === "vertical"
