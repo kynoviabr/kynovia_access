@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createUnitAction, deleteUnitAction, updateUnitAction } from "../actions";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
@@ -12,8 +13,27 @@ type SearchParams = Promise<{
 
 export const dynamic = "force-dynamic";
 
+type Unit = {
+  block: string | null;
+  floor: string | null;
+  id: string;
+  metadata: unknown;
+  number: string;
+};
+
 function sanitizeSearch(value: string) {
   return value.replace(/[%,]/g, "").trim();
+}
+
+function unitMetadata(unit: Unit) {
+  return unit.metadata && typeof unit.metadata === "object" && !Array.isArray(unit.metadata)
+    ? (unit.metadata as Record<string, unknown>)
+    : {};
+}
+
+function metadataValue(unit: Unit, key: string) {
+  const value = unitMetadata(unit)[key];
+  return typeof value === "string" ? value : "";
 }
 
 function statusMessage(status?: string) {
@@ -66,12 +86,18 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
   const params = await searchParams;
 
   const { condominium } = context;
+  const configuredUnitMode = condominium.unitRegistrationMode;
+  if (!configuredUnitMode) {
+    redirect("/dashboard/settings?onboarding=unit_structure");
+  }
+
+  const isHorizontal = configuredUnitMode === "horizontal";
   const q = params.q?.trim() ?? "";
   const filterQ = sanitizeSearch(q);
   const supabase = await createServerSupabaseClient();
   let query = supabase
     .from("units")
-    .select("id, block, number, floor")
+    .select("id, block, number, floor, metadata")
     .eq("condominium_id", condominium.id)
     .order("block", { ascending: true })
     .order("number", { ascending: true });
@@ -80,7 +106,8 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
     query = query.or(`block.ilike.%${filterQ}%,number.ilike.%${filterQ}%,floor.ilike.%${filterQ}%`);
   }
 
-  const { data: units, error } = await query;
+  const { data: unitsData, error } = await query;
+  const units = (unitsData ?? []) as Unit[];
   const success = statusMessage(params.status);
   const failure = errorMessage(params.status);
 
@@ -108,7 +135,11 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
         <form className="filter-form">
           <label>
             Buscar
-            <input name="q" placeholder="Bloco, numero ou andar" defaultValue={q} />
+            <input
+              name="q"
+              placeholder={isHorizontal ? "Quadra, lote ou rua" : "Bloco, unidade ou andar"}
+              defaultValue={q}
+            />
           </label>
           <button type="submit">Filtrar</button>
           <Link className="button-link secondary" href="/dashboard/units">
@@ -124,22 +155,46 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
             <table>
               <thead>
                 <tr>
-                  <th>Bloco</th>
-                  <th>Numero</th>
-                  <th>Andar</th>
+                  <th>{isHorizontal ? "Quadra" : "Bloco"}</th>
+                  <th>{isHorizontal ? "Lote" : "Unidade"}</th>
+                  <th>{isHorizontal ? "Rua / Numero" : "Andar"}</th>
                   <th>Acoes</th>
                 </tr>
               </thead>
               <tbody>
-                {(units ?? []).map((unit) => (
+                {units.map((unit) => (
                   <tr key={unit.id}>
                     <td colSpan={4}>
                       <form className="inline-form" action={updateUnitAction}>
                         <input type="hidden" name="condominiumId" value={condominium.id} />
                         <input type="hidden" name="unitId" value={unit.id} />
-                        <input name="block" defaultValue={unit.block ?? ""} placeholder="Bloco" />
+                        <input
+                          type="hidden"
+                          name="unitRegistrationMode"
+                          value={configuredUnitMode}
+                        />
+                        <input
+                          name="block"
+                          defaultValue={unit.block ?? ""}
+                          placeholder={isHorizontal ? "Quadra" : "Bloco"}
+                        />
                         <input name="number" defaultValue={unit.number} required />
-                        <input name="floor" defaultValue={unit.floor ?? ""} placeholder="Andar" />
+                        {isHorizontal ? (
+                          <>
+                            <input
+                              name="street"
+                              defaultValue={metadataValue(unit, "street")}
+                              placeholder="Rua"
+                            />
+                            <input
+                              name="addressNumber"
+                              defaultValue={metadataValue(unit, "addressNumber")}
+                              placeholder="Numero"
+                            />
+                          </>
+                        ) : (
+                          <input name="floor" defaultValue={unit.floor ?? ""} placeholder="Andar" />
+                        )}
                         <button type="submit">Salvar</button>
                         <button
                           className="secondary"
@@ -159,24 +214,46 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
               </tbody>
             </table>
           </div>
-          {!units?.length ? <p className="muted">Nenhuma unidade encontrada.</p> : null}
+          {!units.length ? <p className="muted">Nenhuma unidade encontrada.</p> : null}
         </div>
 
         <div className="admin-section">
           <h2>Nova unidade</h2>
           <form className="admin-form" action={createUnitAction}>
             <input type="hidden" name="condominiumId" value={condominium.id} />
+            <input
+              type="hidden"
+              name="unitRegistrationMode"
+              value={configuredUnitMode}
+            />
             <label>
-              Bloco
-              <input name="block" placeholder="A" />
+              {isHorizontal ? "Quadra" : "Bloco"}
+              <input name="block" placeholder={isHorizontal ? "Quadra A" : "A"} />
             </label>
             <label>
-              Numero
-              <input name="number" required placeholder="101" />
+              {isHorizontal ? "Lote" : "Unidade"}
+              <input name="number" required placeholder={isHorizontal ? "12" : "101"} />
             </label>
+            {isHorizontal ? (
+              <div className="form-row split">
+                <label>
+                  Rua
+                  <input name="street" placeholder="Rua das Palmeiras" />
+                </label>
+                <label>
+                  Numero
+                  <input name="addressNumber" placeholder="120" />
+                </label>
+              </div>
+            ) : (
+              <label>
+                Andar
+                <input name="floor" placeholder="1" />
+              </label>
+            )}
             <label>
-              Andar
-              <input name="floor" placeholder="1" />
+              Complemento
+              <input name="complement" placeholder="Observacao interna" />
             </label>
             <button type="submit">Adicionar unidade</button>
           </form>

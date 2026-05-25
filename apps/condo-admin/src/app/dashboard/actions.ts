@@ -17,6 +17,20 @@ function normalizeDigits(value: string) {
 
 const settingsManagerRoles = ["condominium_admin", "syndic", "manager"];
 const unitManagerRoles = [...settingsManagerRoles, "resident_manager"];
+const unitRegistrationModes = ["vertical", "horizontal"] as const;
+
+function asRecord(value: unknown) {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function unitRegistrationMode(formData: FormData) {
+  const mode = formValue(formData, "unitRegistrationMode");
+  return unitRegistrationModes.includes(mode as (typeof unitRegistrationModes)[number])
+    ? mode
+    : null;
+}
 
 function requireCondoManager(role: string, allowedRoles: string[]) {
   if (!allowedRoles.includes(role)) {
@@ -47,7 +61,7 @@ async function ensureCondominiumAccess(condominiumId: string, allowedRoles: stri
   const supabase = await createServerSupabaseClient();
   const { data: condominium } = await supabase
     .from("condominiums")
-    .select("id")
+    .select("id, metadata")
     .eq("id", condominiumId)
     .eq("tenant_id", profile.tenantId)
     .maybeSingle();
@@ -56,7 +70,7 @@ async function ensureCondominiumAccess(condominiumId: string, allowedRoles: stri
     redirect("/dashboard?error=condominium_access_denied");
   }
 
-  return { profile, supabase };
+  return { condominium, profile, supabase };
 }
 
 export async function updateCondominiumAction(formData: FormData) {
@@ -69,14 +83,16 @@ export async function updateCondominiumAction(formData: FormData) {
     redirectToSettings("missing_condominium_fields");
   }
 
-  const { profile, supabase } = await ensureCondominiumAccess(
+  const { profile, supabase, condominium } = await ensureCondominiumAccess(
     condominiumId,
     settingsManagerRoles
   );
+  const existingMetadata = asRecord(condominium.metadata);
   const { error } = await supabase
     .from("condominiums")
     .update({
       metadata: {
+        ...existingMetadata,
         city: formValue(formData, "city"),
         cnpj,
         complement: formValue(formData, "complement"),
@@ -103,21 +119,30 @@ export async function updateCondominiumAction(formData: FormData) {
 
 export async function updateOperationalSettingsAction(formData: FormData) {
   const condominiumId = formValue(formData, "condominiumId");
+  const mode = unitRegistrationMode(formData);
   const visitorParkingCapacity = parseNonNegativeInteger(
     formValue(formData, "visitorParkingCapacity")
   );
 
-  if (!condominiumId) {
+  if (!condominiumId || !mode) {
     redirectToSettings("missing_condominium_id");
   }
 
-  const { profile, supabase } = await ensureCondominiumAccess(
+  const { profile, supabase, condominium } = await ensureCondominiumAccess(
     condominiumId,
     settingsManagerRoles
   );
+  const existingMetadata = asRecord(condominium.metadata);
   const { error } = await supabase
     .from("condominiums")
-    .update({ visitor_parking_capacity: visitorParkingCapacity })
+    .update({
+      metadata: {
+        ...existingMetadata,
+        unitRegistrationConfiguredAt: new Date().toISOString(),
+        unitRegistrationMode: mode
+      },
+      visitor_parking_capacity: visitorParkingCapacity
+    })
     .eq("id", condominiumId)
     .eq("tenant_id", profile.tenantId);
 
@@ -130,9 +155,10 @@ export async function updateOperationalSettingsAction(formData: FormData) {
 
 export async function createUnitAction(formData: FormData) {
   const condominiumId = formValue(formData, "condominiumId");
+  const mode = unitRegistrationMode(formData);
   const number = formValue(formData, "number");
 
-  if (!condominiumId || !number) {
+  if (!condominiumId || !number || !mode) {
     redirectToUnits("missing_unit_fields");
   }
 
@@ -141,6 +167,13 @@ export async function createUnitAction(formData: FormData) {
     tenant_id: profile.tenantId,
     condominium_id: condominiumId,
     block: normalizeNullableText(formValue(formData, "block")),
+    metadata: {
+      addressNumber: formValue(formData, "addressNumber"),
+      complement: formValue(formData, "complement"),
+      lot: formValue(formData, "lot"),
+      registrationMode: mode,
+      street: formValue(formData, "street")
+    },
     number,
     floor: normalizeNullableText(formValue(formData, "floor"))
   });
@@ -154,10 +187,11 @@ export async function createUnitAction(formData: FormData) {
 
 export async function updateUnitAction(formData: FormData) {
   const condominiumId = formValue(formData, "condominiumId");
+  const mode = unitRegistrationMode(formData);
   const unitId = formValue(formData, "unitId");
   const number = formValue(formData, "number");
 
-  if (!condominiumId || !unitId || !number) {
+  if (!condominiumId || !unitId || !number || !mode) {
     redirectToUnits("missing_unit_fields");
   }
 
@@ -166,6 +200,13 @@ export async function updateUnitAction(formData: FormData) {
     .from("units")
     .update({
       block: normalizeNullableText(formValue(formData, "block")),
+      metadata: {
+        addressNumber: formValue(formData, "addressNumber"),
+        complement: formValue(formData, "complement"),
+        lot: formValue(formData, "lot"),
+        registrationMode: mode,
+        street: formValue(formData, "street")
+      },
       number,
       floor: normalizeNullableText(formValue(formData, "floor"))
     })

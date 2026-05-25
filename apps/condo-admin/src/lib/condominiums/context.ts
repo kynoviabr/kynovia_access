@@ -16,6 +16,7 @@ export type ActiveCondominium = {
   slug: string;
   state: string;
   timezone: string;
+  unitRegistrationMode: "horizontal" | "vertical" | null;
   visitorParkingCapacity: number;
   whatsapp: string;
 };
@@ -51,6 +52,7 @@ function mapCondominium(row: CondominiumRow): ActiveCondominium {
     const item = metadata[key];
     return typeof item === "string" ? item : "";
   };
+  const unitRegistrationMode = value("unitRegistrationMode");
 
   return {
     city: value("city"),
@@ -66,6 +68,10 @@ function mapCondominium(row: CondominiumRow): ActiveCondominium {
     slug: row.slug,
     state: value("state"),
     timezone: row.timezone,
+    unitRegistrationMode:
+      unitRegistrationMode === "horizontal" || unitRegistrationMode === "vertical"
+        ? unitRegistrationMode
+        : null,
     visitorParkingCapacity: row.visitor_parking_capacity,
     whatsapp: value("whatsapp")
   };

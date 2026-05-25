@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { requireAuthorizedProfile } from "../../lib/auth/session";
 import { getCondoAdminContext } from "../../lib/condominiums/context";
 import { getAllowedOperationalModules } from "../../lib/operations/modules";
@@ -10,6 +11,10 @@ export default async function DashboardPage() {
   const context = await getCondoAdminContext();
   const condominium = context?.condominium ?? null;
   const modules = getAllowedOperationalModules(profile.role);
+
+  if (condominium && !condominium.unitRegistrationMode) {
+    redirect("/dashboard/settings?onboarding=unit_structure");
+  }
 
   return (
     <main className="admin-shell">
