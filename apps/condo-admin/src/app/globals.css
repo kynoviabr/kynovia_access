@@ -317,6 +317,10 @@ button:disabled {
   margin: 0 0 24px;
 }
 
+.settings-grid-single {
+  grid-template-columns: minmax(0, 880px);
+}
+
 .settings-side-stack {
   display: grid;
   gap: 18px;
@@ -403,6 +407,10 @@ button:disabled {
 
 .form-row.split {
   grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr);
+}
+
+.settings-paired-row {
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.38fr);
 }
 
 .form-block {

@@ -32,6 +32,7 @@ type CondominiumRow = {
   name: string;
   slug: string;
   timezone: string;
+  unit_registration_mode: string | null;
   visitor_parking_capacity: number;
 };
 
@@ -52,7 +53,8 @@ function mapCondominium(row: CondominiumRow): ActiveCondominium {
     const item = metadata[key];
     return typeof item === "string" ? item : "";
   };
-  const unitRegistrationMode = value("unitRegistrationMode");
+  const metadataUnitRegistrationMode = value("unitRegistrationMode");
+  const unitRegistrationMode = row.unit_registration_mode ?? metadataUnitRegistrationMode;
 
   return {
     city: value("city"),
@@ -103,7 +105,7 @@ export async function getCondoAdminContext(): Promise<CondoAdminContext | null> 
 
   let query = supabase
     .from("condominiums")
-    .select("id, name, slug, timezone, visitor_parking_capacity, metadata")
+    .select("id, name, slug, timezone, unit_registration_mode, visitor_parking_capacity, metadata")
     .eq("tenant_id", profile.tenantId)
     .order("name", { ascending: true })
     .limit(1);

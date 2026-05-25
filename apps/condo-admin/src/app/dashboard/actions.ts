@@ -78,8 +78,12 @@ export async function updateCondominiumAction(formData: FormData) {
   const name = formValue(formData, "name");
   const timezone = formValue(formData, "timezone") || "America/Sao_Paulo";
   const cnpj = normalizeDigits(formValue(formData, "cnpj"));
+  const mode = unitRegistrationMode(formData);
+  const visitorParkingCapacity = parseNonNegativeInteger(
+    formValue(formData, "visitorParkingCapacity")
+  );
 
-  if (!condominiumId || !name || cnpj.length !== 14) {
+  if (!condominiumId || !name || cnpj.length !== 14 || !mode) {
     redirectToSettings("missing_condominium_fields");
   }
 
@@ -102,10 +106,14 @@ export async function updateCondominiumAction(formData: FormData) {
         phone: normalizePhone(formValue(formData, "phone")),
         postalCode: normalizeDigits(formValue(formData, "postalCode")),
         state: formValue(formData, "state"),
+        unitRegistrationConfiguredAt: new Date().toISOString(),
+        unitRegistrationMode: mode,
         whatsapp: normalizePhone(formValue(formData, "whatsapp"))
       },
       name,
-      timezone
+      timezone,
+      unit_registration_mode: mode,
+      visitor_parking_capacity: visitorParkingCapacity
     })
     .eq("id", condominiumId)
     .eq("tenant_id", profile.tenantId);
@@ -164,7 +172,8 @@ export async function updateUnitRegistrationModeAction(formData: FormData) {
         ...existingMetadata,
         unitRegistrationConfiguredAt: new Date().toISOString(),
         unitRegistrationMode: mode
-      }
+      },
+      unit_registration_mode: mode
     })
     .eq("id", condominiumId)
     .eq("tenant_id", profile.tenantId);
@@ -221,7 +230,8 @@ export async function createUnitAction(formData: FormData) {
         ...existingMetadata,
         unitRegistrationConfiguredAt: new Date().toISOString(),
         unitRegistrationMode: mode
-      }
+      },
+      unit_registration_mode: mode
     })
     .eq("id", condominiumId)
     .eq("tenant_id", profile.tenantId);
@@ -272,7 +282,8 @@ export async function updateUnitAction(formData: FormData) {
         ...existingMetadata,
         unitRegistrationConfiguredAt: new Date().toISOString(),
         unitRegistrationMode: mode
-      }
+      },
+      unit_registration_mode: mode
     })
     .eq("id", condominiumId)
     .eq("tenant_id", profile.tenantId);

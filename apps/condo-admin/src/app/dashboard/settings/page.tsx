@@ -1,8 +1,4 @@
-import {
-  updateCondominiumAction,
-  updateOperationalSettingsAction,
-  updateUnitRegistrationModeAction
-} from "../actions";
+import { updateCondominiumAction } from "../actions";
 import { SettingsAddressClearOnCep } from "./SettingsAddressClearOnCep";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
@@ -96,7 +92,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
           </p>
         </section>
       ) : null}
-      <section className="settings-grid">
+      <section className="settings-grid settings-grid-single">
         <div className="admin-section">
           <h2>Dados gerais do condominio</h2>
           <p className="muted">
@@ -121,7 +117,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
               Endereco completo
               <input name="fullAddress" defaultValue={condominium.fullAddress} placeholder="Rua, avenida ou alameda" />
             </label>
-            <div className="form-row split">
+            <div className="form-row settings-paired-row">
               <label>
                 Numero
                 <input name="number" defaultValue={condominium.number} />
@@ -163,61 +159,23 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
               Timezone
               <input name="timezone" defaultValue={condominium.timezone} required />
             </label>
-            <button type="submit">Salvar dados</button>
-          </form>
-        </div>
-
-        <div className="settings-side-stack">
-          <div className="admin-section">
-            <h2>Tipo de condominio</h2>
-            <p className="muted">
-              Esta configuracao define como as unidades serao cadastradas e exibidas em moradores e
-              veiculos.
-            </p>
-            <form className="admin-form" action={updateUnitRegistrationModeAction}>
-              <input type="hidden" name="condominiumId" value={condominium.id} />
-              <fieldset className="choice-fieldset">
-                <legend>Estrutura de unidades</legend>
-                <label className="choice-card">
-                  <input
-                    name="unitRegistrationMode"
-                    type="radio"
-                    value="vertical"
-                    defaultChecked={condominium.unitRegistrationMode === "vertical"}
-                    required
-                  />
-                  <span>
-                    <strong>Condominio vertical</strong>
-                    <small>Usar bloco, andar e unidade.</small>
-                  </span>
-                </label>
-                <label className="choice-card">
-                  <input
-                    name="unitRegistrationMode"
-                    type="radio"
-                    value="horizontal"
-                    defaultChecked={condominium.unitRegistrationMode === "horizontal"}
-                    required
-                  />
-                  <span>
-                    <strong>Condominio horizontal</strong>
-                    <small>Usar quadra, lote, rua e numero.</small>
-                  </span>
-                </label>
-              </fieldset>
-              <button type="submit">Salvar tipo de condominio</button>
-            </form>
-          </div>
-
-          <div className="admin-section">
-            <h2>Numero de vagas</h2>
-            <p className="muted">
-              Quantidade de vagas de visitantes disponiveis para controle operacional.
-            </p>
-            <form className="admin-form" action={updateOperationalSettingsAction}>
-              <input type="hidden" name="condominiumId" value={condominium.id} />
+            <div className="form-row split">
               <label>
-                Vagas de visitantes
+                Tipo de condominio
+                <select
+                  name="unitRegistrationMode"
+                  defaultValue={condominium.unitRegistrationMode ?? ""}
+                  required
+                >
+                  <option value="" disabled>
+                    Selecione
+                  </option>
+                  <option value="vertical">Condominio vertical</option>
+                  <option value="horizontal">Condominio horizontal</option>
+                </select>
+              </label>
+              <label>
+                Numero de vagas
                 <input
                   min="0"
                   name="visitorParkingCapacity"
@@ -225,9 +183,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
                   defaultValue={condominium.visitorParkingCapacity}
                 />
               </label>
-              <button type="submit">Salvar numero de vagas</button>
-            </form>
-          </div>
+            </div>
+            <button type="submit">Salvar dados</button>
+          </form>
         </div>
       </section>
     </main>
