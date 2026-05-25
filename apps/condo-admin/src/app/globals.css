@@ -18,6 +18,7 @@ button,
 input,
 select,
 textarea {
+  box-sizing: border-box;
   font: inherit;
 }
 
@@ -66,6 +67,7 @@ label {
   font-size: 0.9rem;
   font-weight: 700;
   gap: 8px;
+  min-width: 0;
 }
 
 input,
@@ -76,7 +78,9 @@ textarea {
   border-radius: 6px;
   color: #111827;
   min-height: 44px;
+  min-width: 0;
   padding: 0 12px;
+  width: 100%;
 }
 
 input[readonly] {
@@ -375,11 +379,12 @@ button.secondary,
 
 .form-row {
   display: grid;
-  gap: 14px;
+  column-gap: 18px;
+  row-gap: 14px;
 }
 
 .form-row.split {
-  grid-template-columns: minmax(120px, 0.45fr) minmax(180px, 1fr);
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr);
 }
 
 .form-block {
