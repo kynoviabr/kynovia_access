@@ -3,6 +3,7 @@ import {
   updateOperationalSettingsAction,
   updateUnitRegistrationModeAction
 } from "../actions";
+import { SettingsAddressClearOnCep } from "./SettingsAddressClearOnCep";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
 import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
@@ -115,6 +116,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
               CEP
               <input name="postalCode" defaultValue={condominium.postalCode} placeholder="00000-000" />
             </label>
+            <SettingsAddressClearOnCep />
             <label>
               Endereco completo
               <input name="fullAddress" defaultValue={condominium.fullAddress} placeholder="Rua, avenida ou alameda" />
