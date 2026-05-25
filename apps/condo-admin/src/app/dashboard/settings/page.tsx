@@ -7,7 +7,6 @@ import { getCondoAdminContext } from "../../../lib/condominiums/context";
 import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
 
 type SearchParams = Promise<{
-  onboarding?: string;
   status?: string;
 }>;
 
@@ -35,7 +34,7 @@ function errorMessage(status?: string) {
   }
 
   if (status === "missing_condominium_id") {
-    return "Informe a estrutura de cadastro das unidades.";
+    return "Nao foi possivel identificar o condominio ativo.";
   }
 
   if (status === "update_condominium_failed") {
@@ -57,7 +56,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
   const { condominium } = context;
   const success = statusMessage(params.status);
   const failure = errorMessage(params.status);
-  const showOnboarding = params.onboarding === "unit_structure" && !condominium.unitRegistrationMode;
 
   return (
     <main className="admin-shell">
@@ -74,16 +72,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
 
       {success ? <p className="form-success">{success}</p> : null}
       {failure ? <p className="form-error">{failure}</p> : null}
-      {showOnboarding ? (
-        <section className="onboarding-callout">
-          <strong>Primeira configuracao obrigatoria</strong>
-          <p>
-            Antes de iniciar os cadastros, defina como este condominio identifica suas unidades:
-            vertical por bloco, andar e unidade, ou horizontal por quadra, lote, rua e numero.
-          </p>
-        </section>
-      ) : null}
-
       <section className="admin-grid">
         <div className="admin-section">
           <h2>Dados gerais do condominio</h2>
@@ -162,35 +150,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
           </p>
           <form className="admin-form" action={updateOperationalSettingsAction}>
             <input type="hidden" name="condominiumId" value={condominium.id} />
-            <fieldset className="choice-fieldset">
-              <legend>Como cadastrar unidades neste condominio?</legend>
-              <label className="choice-card">
-                <input
-                  name="unitRegistrationMode"
-                  type="radio"
-                  value="vertical"
-                  defaultChecked={condominium.unitRegistrationMode === "vertical"}
-                  required
-                />
-                <span>
-                  <strong>Condominio vertical</strong>
-                  <small>Usar bloco, andar e unidade.</small>
-                </span>
-              </label>
-              <label className="choice-card">
-                <input
-                  name="unitRegistrationMode"
-                  type="radio"
-                  value="horizontal"
-                  defaultChecked={condominium.unitRegistrationMode === "horizontal"}
-                  required
-                />
-                <span>
-                  <strong>Condominio horizontal</strong>
-                  <small>Usar quadra, lote, rua e numero.</small>
-                </span>
-              </label>
-            </fieldset>
             <label>
               Vagas de visitantes
               <input

@@ -1,5 +1,6 @@
 import { residentStatuses, residentUnitRelationships } from "@kynovia/database";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   createResidentAction,
   createResidentVehicleAction,
@@ -31,6 +32,7 @@ type Unit = {
   block: string | null;
   floor: string | null;
   id: string;
+  metadata: unknown;
   number: string;
 };
 
@@ -53,9 +55,34 @@ type ResidentVehicle = {
 
 export const dynamic = "force-dynamic";
 
-function unitLabel(unit: Unit | undefined) {
+function unitMetadata(unit: Unit) {
+  return unit.metadata && typeof unit.metadata === "object" && !Array.isArray(unit.metadata)
+    ? (unit.metadata as Record<string, unknown>)
+    : {};
+}
+
+function unitMetadataValue(unit: Unit, key: string) {
+  const value = unitMetadata(unit)[key];
+  return typeof value === "string" ? value : "";
+}
+
+function unitLabel(unit: Unit | undefined, mode: "horizontal" | "vertical") {
   if (!unit) {
     return "Unidade removida";
+  }
+
+  if (mode === "horizontal") {
+    const street = unitMetadataValue(unit, "street");
+    const addressNumber = unitMetadataValue(unit, "addressNumber");
+
+    return [
+      unit.block ? `Quadra ${unit.block}` : null,
+      unit.number ? `Lote ${unit.number}` : null,
+      street,
+      addressNumber ? `N ${addressNumber}` : null
+    ]
+      .filter(Boolean)
+      .join(" / ");
   }
 
   return [unit.block, unit.number, unit.floor ? `${unit.floor} andar` : null]
@@ -124,6 +151,11 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
   const queryParams = await searchParams;
 
   const { condominium } = context;
+  const configuredUnitMode = condominium.unitRegistrationMode;
+  if (!configuredUnitMode) {
+    redirect("/dashboard/units?onboarding=unit_structure");
+  }
+
   const searchTerm = queryParams.q?.trim() ?? "";
   const safeSearchTerm = sanitizeSearch(searchTerm);
   const statusFilter = queryParams.status?.trim() ?? "";
@@ -152,7 +184,7 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
     residentsQuery,
     supabase
       .from("units")
-      .select("id, block, number, floor")
+      .select("id, block, number, floor, metadata")
       .eq("condominium_id", condominium.id)
       .order("block", { ascending: true })
       .order("number", { ascending: true })
@@ -329,7 +361,7 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                         <option value="">Unidade</option>
                         {units.map((unit) => (
                           <option key={unit.id} value={unit.id}>
-                            {unitLabel(unit)}
+                            {unitLabel(unit, configuredUnitMode)}
                           </option>
                         ))}
                       </select>
@@ -352,7 +384,7 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                           <input name="condominiumId" type="hidden" value={condominium.id} />
                           <input name="residentUnitId" type="hidden" value={link.id} />
                           <span>
-                            {unitLabel(unitsById.get(link.unit_id))} - {optionLabel(link.relationship)}
+                            {unitLabel(unitsById.get(link.unit_id), configuredUnitMode)} - {optionLabel(link.relationship)}
                             {link.is_primary ? " - principal" : ""}
                           </span>
                           <button className="secondary compact-button" type="submit">
@@ -368,6 +400,17 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                     <form className="inline-form compact-form" action={createResidentVehicleAction}>
                       <input name="condominiumId" type="hidden" value={condominium.id} />
                       <input name="residentId" type="hidden" value={resident.id} />
+                      <label>
+                        Unidade de referencia
+                        <select disabled defaultValue={links[0]?.unit_id ?? ""}>
+                          <option value="">Vincule uma unidade ao morador</option>
+                          {units.map((unit) => (
+                            <option key={unit.id} value={unit.id}>
+                              {unitLabel(unit, configuredUnitMode)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
                       <input name="plate" required placeholder="ABC1D23" />
                       <input name="label" placeholder="Descricao" />
                       <button type="submit">Adicionar</button>

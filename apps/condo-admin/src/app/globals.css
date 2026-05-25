@@ -430,6 +430,36 @@ button.secondary,
   line-height: 1.35;
 }
 
+.mode-fields {
+  display: none;
+  gap: 12px;
+}
+
+.unit-mode-form:has(input[value="vertical"]:checked) .vertical-fields,
+.unit-mode-form:has(input[value="horizontal"]:checked) .horizontal-fields {
+  display: grid;
+}
+
+.field-preview {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  padding: 12px;
+}
+
+.field-preview span {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 800;
+  padding: 10px;
+}
+
 .filter-form {
   align-items: end;
   grid-template-columns: minmax(220px, 1fr) auto auto;

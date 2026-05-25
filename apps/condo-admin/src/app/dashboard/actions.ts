@@ -54,6 +54,11 @@ function redirectToUnits(status: string) {
   redirect(`/dashboard/units?status=${status}`);
 }
 
+function unitRedirect(status: string, onboarding = false) {
+  revalidateCondoPages();
+  redirect(`/dashboard/units?status=${status}${onboarding ? "&onboarding=unit_structure" : ""}`);
+}
+
 async function ensureCondominiumAccess(condominiumId: string, allowedRoles: string[]) {
   const profile = await requireAuthorizedProfile();
   requireCondoManager(profile.role, allowedRoles);
@@ -119,30 +124,21 @@ export async function updateCondominiumAction(formData: FormData) {
 
 export async function updateOperationalSettingsAction(formData: FormData) {
   const condominiumId = formValue(formData, "condominiumId");
-  const mode = unitRegistrationMode(formData);
   const visitorParkingCapacity = parseNonNegativeInteger(
     formValue(formData, "visitorParkingCapacity")
   );
 
-  if (!condominiumId || !mode) {
+  if (!condominiumId) {
     redirectToSettings("missing_condominium_id");
   }
 
-  const { profile, supabase, condominium } = await ensureCondominiumAccess(
+  const { profile, supabase } = await ensureCondominiumAccess(
     condominiumId,
     settingsManagerRoles
   );
-  const existingMetadata = asRecord(condominium.metadata);
   const { error } = await supabase
     .from("condominiums")
-    .update({
-      metadata: {
-        ...existingMetadata,
-        unitRegistrationConfiguredAt: new Date().toISOString(),
-        unitRegistrationMode: mode
-      },
-      visitor_parking_capacity: visitorParkingCapacity
-    })
+    .update({ visitor_parking_capacity: visitorParkingCapacity })
     .eq("id", condominiumId)
     .eq("tenant_id", profile.tenantId);
 
@@ -153,34 +149,87 @@ export async function updateOperationalSettingsAction(formData: FormData) {
   redirectToSettings("settings_updated");
 }
 
+export async function updateUnitRegistrationModeAction(formData: FormData) {
+  const condominiumId = formValue(formData, "condominiumId");
+  const mode = unitRegistrationMode(formData);
+
+  if (!condominiumId || !mode) {
+    unitRedirect("missing_unit_structure", true);
+  }
+
+  const { profile, supabase, condominium } = await ensureCondominiumAccess(
+    condominiumId,
+    unitManagerRoles
+  );
+  const existingMetadata = asRecord(condominium.metadata);
+  const { error } = await supabase
+    .from("condominiums")
+    .update({
+      metadata: {
+        ...existingMetadata,
+        unitRegistrationConfiguredAt: new Date().toISOString(),
+        unitRegistrationMode: mode
+      }
+    })
+    .eq("id", condominiumId)
+    .eq("tenant_id", profile.tenantId);
+
+  if (error) {
+    unitRedirect("unit_structure_failed", true);
+  }
+
+  unitRedirect("unit_structure_updated");
+}
+
 export async function createUnitAction(formData: FormData) {
   const condominiumId = formValue(formData, "condominiumId");
   const mode = unitRegistrationMode(formData);
-  const number = formValue(formData, "number");
+  const block =
+    mode === "horizontal" ? formValue(formData, "horizontalBlock") : formValue(formData, "verticalBlock");
+  const number =
+    mode === "horizontal" ? formValue(formData, "horizontalNumber") : formValue(formData, "verticalNumber");
+  const floor = mode === "horizontal" ? "" : formValue(formData, "verticalFloor");
+  const street = mode === "horizontal" ? formValue(formData, "street") : "";
+  const addressNumber = mode === "horizontal" ? formValue(formData, "addressNumber") : "";
 
   if (!condominiumId || !number || !mode) {
     redirectToUnits("missing_unit_fields");
   }
 
-  const { profile, supabase } = await ensureCondominiumAccess(condominiumId, unitManagerRoles);
+  const { condominium, profile, supabase } = await ensureCondominiumAccess(
+    condominiumId,
+    unitManagerRoles
+  );
+  const existingMetadata = asRecord(condominium.metadata);
   const { error } = await supabase.from("units").insert({
     tenant_id: profile.tenantId,
     condominium_id: condominiumId,
-    block: normalizeNullableText(formValue(formData, "block")),
+    block: normalizeNullableText(block),
     metadata: {
-      addressNumber: formValue(formData, "addressNumber"),
+      addressNumber,
       complement: formValue(formData, "complement"),
-      lot: formValue(formData, "lot"),
       registrationMode: mode,
-      street: formValue(formData, "street")
+      street
     },
     number,
-    floor: normalizeNullableText(formValue(formData, "floor"))
+    floor: normalizeNullableText(floor)
   });
 
   if (error) {
     redirectToUnits("create_unit_failed");
   }
+
+  await supabase
+    .from("condominiums")
+    .update({
+      metadata: {
+        ...existingMetadata,
+        unitRegistrationConfiguredAt: new Date().toISOString(),
+        unitRegistrationMode: mode
+      }
+    })
+    .eq("id", condominiumId)
+    .eq("tenant_id", profile.tenantId);
 
   redirectToUnits("unit_created");
 }
@@ -195,7 +244,11 @@ export async function updateUnitAction(formData: FormData) {
     redirectToUnits("missing_unit_fields");
   }
 
-  const { supabase } = await ensureCondominiumAccess(condominiumId, unitManagerRoles);
+  const { condominium, profile, supabase } = await ensureCondominiumAccess(
+    condominiumId,
+    unitManagerRoles
+  );
+  const existingMetadata = asRecord(condominium.metadata);
   const { error } = await supabase
     .from("units")
     .update({
@@ -216,6 +269,18 @@ export async function updateUnitAction(formData: FormData) {
   if (error) {
     redirectToUnits("update_unit_failed");
   }
+
+  await supabase
+    .from("condominiums")
+    .update({
+      metadata: {
+        ...existingMetadata,
+        unitRegistrationConfiguredAt: new Date().toISOString(),
+        unitRegistrationMode: mode
+      }
+    })
+    .eq("id", condominiumId)
+    .eq("tenant_id", profile.tenantId);
 
   redirectToUnits("unit_updated");
 }
