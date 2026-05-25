@@ -204,7 +204,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                 </label>
                 <label>
                   Complemento
-                  <input maxLength={4} name="complement" placeholder="Ex.: F1" />
+                  <input maxLength={3} name="complement" placeholder="Ex.: F1" />
                 </label>
                 <button type="submit">Adicionar unidade</button>
               </>
@@ -346,7 +346,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                       <input
                         name="complement"
                         defaultValue={metadataValue(unit, "complement")}
-                        maxLength={4}
+                        maxLength={3}
                         placeholder="Complemento"
                         aria-label="Complemento"
                       />
