@@ -1,5 +1,5 @@
 import { updateCondominiumAction } from "../actions";
-import { SettingsAddressClearOnCep } from "./SettingsAddressClearOnCep";
+import { SettingsCondominiumFields } from "./SettingsCondominiumFields";
 import { requireAuthorizedProfile } from "../../../lib/auth/session";
 import { getCondoAdminContext } from "../../../lib/condominiums/context";
 import { requireOperationalModuleAccess } from "../../../lib/operations/modules";
@@ -33,7 +33,11 @@ function statusMessage(status?: string) {
 
 function errorMessage(status?: string) {
   if (status === "missing_condominium_fields") {
-    return "Informe o nome do condominio.";
+    return "Revise os campos obrigatorios e formatos do condominio.";
+  }
+
+  if (status === "invalid_condominium_fields") {
+    return "Revise CNPJ, CEP, telefone, WhatsApp, e-mail, UF, timezone e tipo de condominio.";
   }
 
   if (status === "missing_condominium_id") {
@@ -100,90 +104,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Sea
           </p>
           <form className="admin-form" action={updateCondominiumAction}>
             <input type="hidden" name="condominiumId" value={condominium.id} />
-            <label>
-              Nome do condominio
-              <input name="name" defaultValue={condominium.name} required />
-            </label>
-            <label>
-              CNPJ
-              <input name="cnpj" defaultValue={condominium.cnpj} required placeholder="00.000.000/0000-00" />
-            </label>
-            <label>
-              CEP
-              <input name="postalCode" defaultValue={condominium.postalCode} placeholder="00000-000" />
-            </label>
-            <SettingsAddressClearOnCep />
-            <label>
-              Endereco completo
-              <input name="fullAddress" defaultValue={condominium.fullAddress} placeholder="Rua, avenida ou alameda" />
-            </label>
-            <div className="form-row settings-paired-row">
-              <label>
-                Numero
-                <input name="number" defaultValue={condominium.number} />
-              </label>
-              <label>
-                Complemento
-                <input name="complement" defaultValue={condominium.complement} />
-              </label>
-            </div>
-            <div className="form-row split">
-              <label>
-                Cidade
-                <input name="city" defaultValue={condominium.city} />
-              </label>
-              <label>
-                UF
-                <input name="state" defaultValue={condominium.state} maxLength={2} />
-              </label>
-            </div>
-            <div className="form-row split">
-              <label>
-                Telefone
-                <input name="phone" defaultValue={condominium.phone} placeholder="(11) 99999-9999" />
-              </label>
-              <label>
-                WhatsApp
-                <input name="whatsapp" defaultValue={condominium.whatsapp} placeholder="(11) 99999-9999" />
-              </label>
-            </div>
-            <label>
-              E-mail
-              <input name="email" type="email" defaultValue={condominium.email} />
-            </label>
-            <label>
-              Slug
-              <input value={condominium.slug} readOnly aria-readonly="true" />
-            </label>
-            <label>
-              Timezone
-              <input name="timezone" defaultValue={condominium.timezone} required />
-            </label>
-            <div className="form-row split">
-              <label>
-                Tipo de condominio
-                <select
-                  name="unitRegistrationMode"
-                  defaultValue={condominium.unitRegistrationMode ?? ""}
-                  required
-                >
-                  <option value="" disabled>
-                    Selecione
-                  </option>
-                  <option value="vertical">Condominio vertical</option>
-                  <option value="horizontal">Condominio horizontal</option>
-                </select>
-              </label>
-              <label>
-                Numero de vagas
-                <input
-                  min="0"
-                  name="visitorParkingCapacity"
-                  type="number"
-                  defaultValue={condominium.visitorParkingCapacity}
-                />
-              </label>
-            </div>
+            <SettingsCondominiumFields condominium={condominium} />
             <button type="submit">Salvar dados</button>
           </form>
         </div>

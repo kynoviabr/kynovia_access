@@ -5,6 +5,13 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAuthorizedProfile } from "../../lib/auth/session";
 import { createServerSupabaseClient } from "../../lib/supabase/server";
+import {
+  isValidCepFormat,
+  isValidCnpj,
+  isValidEmail,
+  isValidPhoneFormat
+} from "../../lib/validation/brasil";
+import { brazilStates, brazilTimezones } from "./settings/form-options";
 
 function formValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -77,14 +84,39 @@ export async function updateCondominiumAction(formData: FormData) {
   const condominiumId = formValue(formData, "condominiumId");
   const name = formValue(formData, "name");
   const timezone = formValue(formData, "timezone") || "America/Sao_Paulo";
-  const cnpj = normalizeDigits(formValue(formData, "cnpj"));
+  const cnpjInput = formValue(formData, "cnpj");
+  const cnpj = normalizeDigits(cnpjInput);
+  const postalCodeInput = formValue(formData, "postalCode");
+  const phoneInput = formValue(formData, "phone");
+  const whatsappInput = formValue(formData, "whatsapp");
+  const email = formValue(formData, "email");
+  const state = formValue(formData, "state");
   const mode = unitRegistrationMode(formData);
   const visitorParkingCapacity = parseNonNegativeInteger(
     formValue(formData, "visitorParkingCapacity")
   );
 
-  if (!condominiumId || !name || cnpj.length !== 14 || !mode) {
+  if (
+    !condominiumId ||
+    !name ||
+    !formValue(formData, "fullAddress") ||
+    !formValue(formData, "number") ||
+    !formValue(formData, "city") ||
+    !mode
+  ) {
     redirectToSettings("missing_condominium_fields");
+  }
+
+  if (
+    !isValidCnpj(cnpjInput) ||
+    !isValidCepFormat(postalCodeInput) ||
+    !isValidPhoneFormat(phoneInput) ||
+    !isValidPhoneFormat(whatsappInput) ||
+    !isValidEmail(email) ||
+    !brazilStates.includes(state as (typeof brazilStates)[number]) ||
+    !brazilTimezones.includes(timezone as (typeof brazilTimezones)[number])
+  ) {
+    redirectToSettings("invalid_condominium_fields");
   }
 
   const { profile, supabase, condominium } = await ensureCondominiumAccess(
@@ -100,15 +132,15 @@ export async function updateCondominiumAction(formData: FormData) {
         city: formValue(formData, "city"),
         cnpj,
         complement: formValue(formData, "complement"),
-        email: formValue(formData, "email"),
+        email,
         fullAddress: formValue(formData, "fullAddress"),
         number: formValue(formData, "number"),
-        phone: normalizePhone(formValue(formData, "phone")),
-        postalCode: normalizeDigits(formValue(formData, "postalCode")),
-        state: formValue(formData, "state"),
+        phone: normalizePhone(phoneInput),
+        postalCode: normalizeDigits(postalCodeInput),
+        state,
         unitRegistrationConfiguredAt: new Date().toISOString(),
         unitRegistrationMode: mode,
-        whatsapp: normalizePhone(formValue(formData, "whatsapp"))
+        whatsapp: normalizePhone(whatsappInput)
       },
       name,
       timezone,
