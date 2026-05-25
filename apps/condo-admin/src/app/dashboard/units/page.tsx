@@ -188,11 +188,11 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
               <>
                 <label>
                   Quadra
-                  <input name="horizontalBlock" placeholder="Ex.: A" />
+                  <input maxLength={2} name="horizontalBlock" placeholder="Ex.: A" />
                 </label>
                 <label>
                   Lote
-                  <input name="horizontalNumber" placeholder="Ex.: 30" required />
+                  <input maxLength={3} name="horizontalNumber" placeholder="Ex.: 30" required />
                 </label>
                 <label>
                   Endereco
@@ -200,11 +200,11 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                 </label>
                 <label>
                   Numero
-                  <input name="addressNumber" placeholder="Ex.: 31" />
+                  <input maxLength={5} name="addressNumber" placeholder="Ex.: 31" />
                 </label>
                 <label>
                   Complemento
-                  <input name="complement" placeholder="Observacao interna" />
+                  <input maxLength={4} name="complement" placeholder="Ex.: F1" />
                 </label>
                 <button type="submit">Adicionar unidade</button>
               </>
@@ -252,6 +252,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                   <th>{isHorizontal ? "Lote" : "Andar"}</th>
                   <th>{isHorizontal ? "Endereco" : "Unidade"}</th>
                   {isHorizontal ? <th>Numero</th> : null}
+                  <th>Complemento</th>
                   <th>Salvar</th>
                 </tr>
               </thead>
@@ -271,7 +272,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                           value={unit.id}
                         />
                       </td>
-                      <td colSpan={rowIsHorizontal ? 5 : 4}>
+                      <td colSpan={rowIsHorizontal ? 6 : 5}>
                         <form
                           className={
                             rowIsHorizontal
@@ -290,6 +291,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                           <input
                             name="block"
                             defaultValue={unit.block ?? ""}
+                            maxLength={rowIsHorizontal ? 2 : undefined}
                             placeholder={rowIsHorizontal ? "Quadra" : "Bloco"}
                             aria-label={rowIsHorizontal ? "Quadra" : "Bloco"}
                           />
@@ -298,6 +300,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                               <input
                                 name="number"
                                 defaultValue={unit.number}
+                                maxLength={3}
                                 placeholder="Lote"
                                 aria-label="Lote"
                                 required
@@ -311,6 +314,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                               <input
                                 name="addressNumber"
                                 defaultValue={metadataValue(unit, "addressNumber")}
+                                maxLength={5}
                                 placeholder="Numero"
                                 aria-label="Numero"
                               />
@@ -332,6 +336,13 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                               />
                             </>
                           )}
+                          <input
+                            name="complement"
+                            defaultValue={metadataValue(unit, "complement")}
+                            maxLength={4}
+                            placeholder="Complemento"
+                            aria-label="Complemento"
+                          />
                           <button type="submit">Salvar</button>
                         </form>
                       </td>

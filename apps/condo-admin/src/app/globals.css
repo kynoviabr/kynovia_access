@@ -613,7 +613,7 @@ button:disabled {
 }
 
 .unit-create-form-horizontal {
-  grid-template-columns: minmax(120px, 0.8fr) minmax(120px, 0.8fr) minmax(220px, 1.5fr) minmax(120px, 0.8fr) minmax(180px, 1fr) auto;
+  grid-template-columns: minmax(64px, 72px) minmax(76px, 86px) minmax(260px, 1fr) minmax(92px, 100px) minmax(82px, 92px) auto;
 }
 
 .unit-create-form-vertical {
@@ -625,11 +625,11 @@ button:disabled {
 }
 
 .unit-row-form-horizontal {
-  grid-template-columns: minmax(110px, 0.8fr) minmax(110px, 0.8fr) minmax(220px, 1.4fr) minmax(110px, 0.8fr) auto;
+  grid-template-columns: minmax(64px, 72px) minmax(76px, 86px) minmax(260px, 1fr) minmax(92px, 100px) minmax(82px, 92px) auto;
 }
 
 .unit-row-form-vertical {
-  grid-template-columns: minmax(140px, 1fr) minmax(110px, 0.8fr) minmax(140px, 1fr) auto;
+  grid-template-columns: minmax(140px, 1fr) minmax(110px, 0.8fr) minmax(140px, 1fr) minmax(120px, 0.8fr) auto;
 }
 
 .bulk-actions {
