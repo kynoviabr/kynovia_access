@@ -40,6 +40,11 @@ function metadataValue(unit: Unit, key: string) {
   return typeof value === "string" ? value : "";
 }
 
+function unitRegistrationMode(unit: Unit) {
+  const mode = metadataValue(unit, "registrationMode");
+  return mode === "horizontal" || mode === "vertical" ? mode : null;
+}
+
 function statusMessage(status?: string) {
   if (status === "unit_created") {
     return "Unidade criada.";
@@ -103,8 +108,6 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
 
   const { condominium } = context;
   const configuredUnitMode = condominium.unitRegistrationMode;
-  const isHorizontal = configuredUnitMode === "horizontal";
-  const isVertical = configuredUnitMode === "vertical";
   const q = params.q?.trim() ?? "";
   const filterQ = sanitizeSearch(q);
   const supabase = await createServerSupabaseClient();
@@ -121,6 +124,10 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
 
   const { data: unitsData, error } = await query;
   const units = (unitsData ?? []) as Unit[];
+  const inferredUnitMode = units.map(unitRegistrationMode).find(Boolean) ?? null;
+  const activeUnitMode = configuredUnitMode ?? inferredUnitMode;
+  const isHorizontal = activeUnitMode === "horizontal";
+  const isVertical = activeUnitMode === "vertical";
   const success = statusMessage(params.status);
   const failure = errorMessage(params.status);
   const showOnboarding = params.onboarding === "unit_structure" && !configuredUnitMode;
@@ -194,20 +201,6 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                   <small>Usar bloco, andar e unidade.</small>
                 </span>
               </label>
-              <div className="mode-fields vertical-fields">
-                <label>
-                  Bloco
-                  <input name="verticalBlock" placeholder="A" />
-                </label>
-                <label>
-                  Andar
-                  <input name="verticalFloor" placeholder="1" />
-                </label>
-                <label>
-                  Unidade
-                  <input name="verticalNumber" placeholder="101" />
-                </label>
-              </div>
               <label className="choice-card">
                 <input
                   name="unitRegistrationMode"
@@ -221,25 +214,39 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                   <small>Usar quadra, lote, rua e numero.</small>
                 </span>
               </label>
-              <div className="mode-fields horizontal-fields">
-                <label>
-                  Quadra
-                  <input name="horizontalBlock" placeholder="Quadra A" />
-                </label>
-                <label>
-                  Lote
-                  <input name="horizontalNumber" placeholder="12" />
-                </label>
-                <label>
-                  Rua
-                  <input name="street" placeholder="Rua das Palmeiras" />
-                </label>
-                <label>
-                  Numero
-                  <input name="addressNumber" placeholder="120" />
-                </label>
-              </div>
             </fieldset>
+            <div className="mode-fields vertical-fields">
+              <label>
+                Bloco
+                <input name="verticalBlock" placeholder="A" />
+              </label>
+              <label>
+                Andar
+                <input name="verticalFloor" placeholder="1" />
+              </label>
+              <label>
+                Unidade
+                <input name="verticalNumber" placeholder="101" />
+              </label>
+            </div>
+            <div className="mode-fields horizontal-fields">
+              <label>
+                Quadra
+                <input name="horizontalBlock" placeholder="Quadra A" />
+              </label>
+              <label>
+                Lote
+                <input name="horizontalNumber" placeholder="12" />
+              </label>
+              <label>
+                Rua
+                <input name="street" placeholder="Rua das Palmeiras" />
+              </label>
+              <label>
+                Numero
+                <input name="addressNumber" placeholder="120" />
+              </label>
+            </div>
             <label>
               Complemento
               <input name="complement" placeholder="Observacao interna" />
@@ -261,55 +268,60 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                 </tr>
               </thead>
               <tbody>
-                {units.map((unit) => (
-                  <tr key={unit.id}>
-                    <td colSpan={4}>
-                      <form className="inline-form" action={updateUnitAction}>
-                        <input type="hidden" name="condominiumId" value={condominium.id} />
-                        <input type="hidden" name="unitId" value={unit.id} />
-                        <input
-                          type="hidden"
-                          name="unitRegistrationMode"
-                          value={configuredUnitMode ?? ""}
-                        />
-                        <input
-                          name="block"
-                          defaultValue={unit.block ?? ""}
-                          placeholder={isHorizontal ? "Quadra" : "Bloco"}
-                        />
-                        <input name="number" defaultValue={unit.number} required />
-                        {isHorizontal ? (
-                          <>
-                            <input
-                              name="street"
-                              defaultValue={metadataValue(unit, "street")}
-                              placeholder="Rua"
-                            />
-                            <input
-                              name="addressNumber"
-                              defaultValue={metadataValue(unit, "addressNumber")}
-                              placeholder="Numero"
-                            />
-                          </>
-                        ) : (
-                          <input name="floor" defaultValue={unit.floor ?? ""} placeholder="Andar" />
-                        )}
-                        <button type="submit">Salvar</button>
-                        <button
-                          className="secondary"
-                          form={`delete-unit-${unit.id}`}
-                          type="submit"
-                        >
-                          Remover
-                        </button>
-                      </form>
-                      <form action={deleteUnitAction} id={`delete-unit-${unit.id}`}>
-                        <input type="hidden" name="condominiumId" value={condominium.id} />
-                        <input type="hidden" name="unitId" value={unit.id} />
-                      </form>
-                    </td>
-                  </tr>
-                ))}
+                {units.map((unit) => {
+                  const rowMode = configuredUnitMode ?? unitRegistrationMode(unit) ?? activeUnitMode;
+                  const rowIsHorizontal = rowMode === "horizontal";
+
+                  return (
+                    <tr key={unit.id}>
+                      <td colSpan={4}>
+                        <form className="inline-form" action={updateUnitAction}>
+                          <input type="hidden" name="condominiumId" value={condominium.id} />
+                          <input type="hidden" name="unitId" value={unit.id} />
+                          <input
+                            type="hidden"
+                            name="unitRegistrationMode"
+                            value={rowMode ?? ""}
+                          />
+                          <input
+                            name="block"
+                            defaultValue={unit.block ?? ""}
+                            placeholder={rowIsHorizontal ? "Quadra" : "Bloco"}
+                          />
+                          <input name="number" defaultValue={unit.number} required />
+                          {rowIsHorizontal ? (
+                            <>
+                              <input
+                                name="street"
+                                defaultValue={metadataValue(unit, "street")}
+                                placeholder="Rua"
+                              />
+                              <input
+                                name="addressNumber"
+                                defaultValue={metadataValue(unit, "addressNumber")}
+                                placeholder="Numero"
+                              />
+                            </>
+                          ) : (
+                            <input name="floor" defaultValue={unit.floor ?? ""} placeholder="Andar" />
+                          )}
+                          <button type="submit">Salvar</button>
+                          <button
+                            className="secondary"
+                            form={`delete-unit-${unit.id}`}
+                            type="submit"
+                          >
+                            Remover
+                          </button>
+                        </form>
+                        <form action={deleteUnitAction} id={`delete-unit-${unit.id}`}>
+                          <input type="hidden" name="condominiumId" value={condominium.id} />
+                          <input type="hidden" name="unitId" value={unit.id} />
+                        </form>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
