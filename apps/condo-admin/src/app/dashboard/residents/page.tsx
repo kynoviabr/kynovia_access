@@ -1,6 +1,5 @@
 import { residentStatuses, residentUnitRelationships } from "@kynovia/database";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import {
   createResidentAction,
   createResidentVehicleAction,
@@ -66,7 +65,7 @@ function unitMetadataValue(unit: Unit, key: string) {
   return typeof value === "string" ? value : "";
 }
 
-function unitLabel(unit: Unit | undefined, mode: "horizontal" | "vertical") {
+function unitLabel(unit: Unit | undefined, mode: "horizontal" | "vertical" | null) {
   if (!unit) {
     return "Unidade removida";
   }
@@ -152,9 +151,6 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
 
   const { condominium } = context;
   const configuredUnitMode = condominium.unitRegistrationMode;
-  if (!configuredUnitMode) {
-    redirect("/dashboard/units?onboarding=unit_structure");
-  }
 
   const searchTerm = queryParams.q?.trim() ?? "";
   const safeSearchTerm = sanitizeSearch(searchTerm);
@@ -233,6 +229,18 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
       {failure ? <p className="form-error">{failure}</p> : null}
       {residentsError ? <p className="form-error">Falha ao carregar moradores.</p> : null}
       {unitsError ? <p className="form-error">Falha ao carregar unidades.</p> : null}
+      {!configuredUnitMode ? (
+        <section className="onboarding-callout">
+          <strong>Estrutura de unidades pendente</strong>
+          <p>
+            Configure o tipo de condominio em Unidades para padronizar os vinculos exibidos em
+            moradores e veiculos. Voce ainda pode acessar este modulo.
+          </p>
+          <Link className="button-link secondary" href="/dashboard/units?onboarding=unit_structure">
+            Configurar em Unidades
+          </Link>
+        </section>
+      ) : null}
 
       <section className="toolbar">
         <form className="filter-form">
