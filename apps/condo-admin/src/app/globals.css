@@ -694,12 +694,14 @@ button:disabled {
 .unit-row-form-horizontal {
   column-gap: 8px;
   grid-template-columns:
-    var(--unit-quadra-col) var(--unit-lote-col) minmax(64px, 1fr)
-    var(--unit-numero-col) 3.5rem 4.75rem;
+    var(--unit-quadra-col) var(--unit-lote-col) minmax(0, 0.62fr)
+    var(--unit-numero-col) 4.75rem 5rem;
 }
 
 .unit-row-form-horizontal label {
   min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .unit-row-form-horizontal label:last-of-type input {
@@ -718,6 +720,7 @@ button:disabled {
 
 .unit-list-row .unit-row-form button {
   align-self: end;
+  font-size: 0.86rem;
   min-width: 0;
   padding: 0;
   width: 100%;
