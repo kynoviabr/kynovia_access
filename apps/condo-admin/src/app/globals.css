@@ -626,9 +626,19 @@ button:disabled {
 }
 
 .unit-create-form-horizontal {
+  column-gap: 10px;
   grid-template-columns:
     var(--unit-quadra-col) var(--unit-lote-col) minmax(220px, 1fr)
-    var(--unit-numero-col) var(--unit-complemento-col) auto;
+    var(--unit-numero-col) 3.75rem max-content;
+}
+
+.unit-create-form-horizontal label:nth-of-type(5) input {
+  padding: 0 8px;
+}
+
+.unit-create-form-horizontal button {
+  padding: 0 12px;
+  white-space: nowrap;
 }
 
 .unit-create-form-vertical {
