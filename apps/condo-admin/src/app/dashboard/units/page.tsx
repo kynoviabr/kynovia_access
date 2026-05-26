@@ -11,7 +11,8 @@ import { requireOperationalModuleAccess } from "../../../lib/operations/modules"
 import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
 type SearchParams = Promise<{
-  q?: string;
+  block?: string;
+  number?: string;
   status?: string;
 }>;
 
@@ -27,6 +28,12 @@ type Unit = {
 
 function sanitizeSearch(value: string) {
   return value.replace(/[%,]/g, "").trim();
+}
+
+function uniqueSortedValues(values: Array<string | null | undefined>) {
+  return Array.from(
+    new Set(values.map((value) => value?.trim()).filter((value): value is string => Boolean(value)))
+  ).sort((a, b) => a.localeCompare(b, "pt-BR", { numeric: true }));
 }
 
 function unitMetadata(unit: Unit) {
@@ -108,9 +115,25 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
 
   const { condominium } = context;
   const configuredUnitMode = condominium.unitRegistrationMode;
-  const q = params.q?.trim() ?? "";
-  const filterQ = sanitizeSearch(q);
+  const selectedBlock = sanitizeSearch(params.block ?? "");
+  const selectedNumber = sanitizeSearch(params.number ?? "");
   const supabase = await createServerSupabaseClient();
+
+  const { data: allUnitsData } = await supabase
+    .from("units")
+    .select("block, number, floor, metadata")
+    .eq("condominium_id", condominium.id)
+    .order("block", { ascending: true })
+    .order("number", { ascending: true });
+
+  const allUnits = (allUnitsData ?? []) as Array<Omit<Unit, "id">>;
+  const blockOptions = uniqueSortedValues(allUnits.map((unit) => unit.block));
+  const numberOptions = uniqueSortedValues(
+    allUnits
+      .filter((unit) => !selectedBlock || unit.block === selectedBlock)
+      .map((unit) => unit.number)
+  );
+
   let query = supabase
     .from("units")
     .select("id, block, number, floor, metadata")
@@ -118,8 +141,12 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
     .order("block", { ascending: true })
     .order("number", { ascending: true });
 
-  if (filterQ) {
-    query = query.or(`block.ilike.%${filterQ}%,number.ilike.%${filterQ}%,floor.ilike.%${filterQ}%`);
+  if (selectedBlock) {
+    query = query.eq("block", selectedBlock);
+  }
+
+  if (selectedNumber) {
+    query = query.eq("number", selectedNumber);
   }
 
   const { data: unitsData, error } = await query;
@@ -159,14 +186,28 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
       {error ? <p className="form-error">Falha ao carregar unidades.</p> : null}
 
       <section className="toolbar">
-        <form className="filter-form">
+        <form className="filter-form unit-filter-form">
           <label>
-            Buscar
-            <input
-              name="q"
-              placeholder={isHorizontal ? "Quadra, lote ou rua" : "Bloco, unidade ou andar"}
-              defaultValue={q}
-            />
+            {isHorizontal ? "Quadra" : "Bloco"}
+            <select name="block" defaultValue={selectedBlock}>
+              <option value="">{isHorizontal ? "Todas as quadras" : "Todos os blocos"}</option>
+              {blockOptions.map((block) => (
+                <option key={block} value={block}>
+                  {block}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            {isHorizontal ? "Lote" : "Unidade"}
+            <select name="number" defaultValue={selectedNumber}>
+              <option value="">{isHorizontal ? "Todos os lotes" : "Todas as unidades"}</option>
+              {numberOptions.map((number) => (
+                <option key={number} value={number}>
+                  {number}
+                </option>
+              ))}
+            </select>
           </label>
           <button type="submit">Filtrar</button>
           <Link className="button-link secondary" href="/dashboard/units">
