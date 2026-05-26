@@ -605,11 +605,11 @@ button:disabled {
 
 .unit-create-form,
 .unit-row-form-horizontal {
-  --unit-quadra-col: 4.5rem;
-  --unit-lote-col: 4.5rem;
-  --unit-numero-col: 5.75rem;
-  --unit-complemento-col: 4.5rem;
-  --unit-save-col: 4.25rem;
+  --unit-quadra-col: 4.25rem;
+  --unit-lote-col: 4.25rem;
+  --unit-numero-col: 5.25rem;
+  --unit-complemento-col: 4.25rem;
+  --unit-save-col: 4rem;
 }
 
 .unit-create-form {
@@ -633,6 +633,8 @@ button:disabled {
 
 .unit-row-form {
   align-items: center;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .unit-list-wrap {
@@ -640,7 +642,14 @@ button:disabled {
   display: grid;
   gap: 0;
   max-width: 100%;
-  overflow-x: clip;
+  overflow-x: hidden;
+}
+
+.unit-list-rows {
+  display: grid;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .unit-list-row {
@@ -671,8 +680,12 @@ button:disabled {
 .unit-row-form-horizontal {
   column-gap: 8px;
   grid-template-columns:
-    var(--unit-quadra-col) var(--unit-lote-col) minmax(88px, 1fr)
+    var(--unit-quadra-col) var(--unit-lote-col) minmax(64px, 1fr)
     var(--unit-numero-col) var(--unit-complemento-col) var(--unit-save-col);
+}
+
+.unit-row-form-horizontal label {
+  min-width: 0;
 }
 
 .unit-row-form-vertical {
