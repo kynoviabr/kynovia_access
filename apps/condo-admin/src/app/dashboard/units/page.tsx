@@ -227,27 +227,27 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
             <input type="hidden" name="unitRegistrationMode" value={activeUnitMode} />
             {isHorizontal ? (
               <>
-                <label>
+                <label className="unit-create-field unit-create-field-block">
                   Quadra
                   <input maxLength={4} name="horizontalBlock" placeholder="Qd." />
                 </label>
-                <label>
+                <label className="unit-create-field unit-create-field-lot">
                   Lote
                   <input maxLength={4} name="horizontalNumber" placeholder="Lote" required />
                 </label>
-                <label>
+                <label className="unit-create-field unit-create-field-street">
                   Endereco
                   <input name="street" placeholder="Rua, avenida ou alameda" />
                 </label>
-                <label>
+                <label className="unit-create-field unit-create-field-number">
                   Numero
                   <input maxLength={8} name="addressNumber" placeholder="Numero" />
                 </label>
-                <label>
+                <label className="unit-create-field unit-create-field-complement">
                   Complemento
                   <input maxLength={3} name="complement" placeholder="Ex.: F1" />
                 </label>
-                <button type="submit">Adicionar unidade</button>
+                <button className="unit-create-save" type="submit">Adicionar</button>
               </>
             ) : (
               <>

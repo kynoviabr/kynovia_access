@@ -626,18 +626,33 @@ button:disabled {
 }
 
 .unit-create-form-horizontal {
-  column-gap: 10px;
-  grid-template-columns:
-    var(--unit-quadra-col) var(--unit-lote-col) minmax(220px, 1fr)
-    var(--unit-numero-col) 3.75rem max-content;
+  column-gap: 8px;
+  grid-template-columns: 4rem 4rem minmax(80px, 1fr) 4.5rem 4rem 7rem;
 }
 
-.unit-create-form-horizontal label:nth-of-type(5) input {
+.unit-create-field {
+  min-width: 0;
+}
+
+.unit-create-field input {
+  inline-size: 100%;
+  justify-self: stretch;
+  max-inline-size: 100%;
+  min-width: 0;
+  width: 100%;
+}
+
+.unit-create-field-complement input {
+  inline-size: 4rem;
+  max-inline-size: 4rem;
   padding: 0 8px;
+  width: 4rem;
 }
 
-.unit-create-form-horizontal button {
-  padding: 0 12px;
+.unit-create-form-horizontal .unit-create-save {
+  font-size: 0.82rem;
+  min-width: 0;
+  padding: 0 10px;
   white-space: nowrap;
 }
 
@@ -903,8 +918,6 @@ th {
   .form-row.split,
   .settings-grid,
   .inline-form,
-  .unit-create-form-horizontal,
-  .unit-create-form-vertical,
   .record-grid,
   .record-subgrid {
     align-items: stretch;
