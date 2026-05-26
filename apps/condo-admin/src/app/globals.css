@@ -649,6 +649,7 @@ button:disabled {
   align-items: center;
   max-width: 100%;
   min-width: 0;
+  width: 100%;
 }
 
 .unit-list-wrap {
@@ -692,20 +693,17 @@ button:disabled {
 }
 
 .unit-row-form-horizontal {
-  column-gap: 8px;
+  column-gap: 10px;
   grid-template-columns:
-    var(--unit-quadra-col) var(--unit-lote-col) minmax(0, 0.62fr)
-    var(--unit-numero-col) 4.75rem 5rem;
+    4.25rem 4.25rem minmax(140px, 1fr) 5rem 5rem 5rem;
 }
 
 .unit-row-form-horizontal label {
   min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
 }
 
 .unit-row-form-horizontal label:last-of-type input {
-  padding: 0 6px;
+  padding: 0 8px;
 }
 
 .unit-row-form-vertical {
