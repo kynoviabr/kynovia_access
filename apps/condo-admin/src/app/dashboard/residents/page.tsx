@@ -241,6 +241,27 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
           <form className="admin-form" action={createResidentAction}>
             <input name="condominiumId" type="hidden" value={condominium.id} />
             <label>
+              Unidade vinculada
+              <select name="unitId" required>
+                <option value="">Selecione a unidade</option>
+                {units.map((unit) => (
+                  <option key={unit.id} value={unit.id}>
+                    {unitLabel(unit)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Tipo de vínculo
+              <select name="relationship" defaultValue="resident" required>
+                {residentUnitRelationships.map((relationship) => (
+                  <option key={relationship} value={relationship}>
+                    {optionLabel(relationship)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
               Nome completo
               <input name="fullName" required placeholder="Maria Silva" />
             </label>
