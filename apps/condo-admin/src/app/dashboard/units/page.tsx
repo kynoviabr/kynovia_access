@@ -244,21 +244,6 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
             </button>
           </div>
           <div className="unit-list-wrap">
-            <div
-              className={
-                isHorizontal
-                  ? "unit-list-header unit-list-header-horizontal"
-                  : "unit-list-header unit-list-header-vertical"
-              }
-            >
-              <span>Selecionar</span>
-              <span>{isHorizontal ? "Quadra" : "Bloco"}</span>
-              <span>{isHorizontal ? "Lote" : "Andar"}</span>
-              <span>{isHorizontal ? "Endereco" : "Unidade"}</span>
-              {isHorizontal ? <span>Numero</span> : null}
-              <span>Complemento</span>
-              <span>Salvar</span>
-            </div>
             <div className="unit-list-rows">
               {units.map((unit) => {
                 const rowMode = configuredUnitMode ?? unitRegistrationMode(unit);
@@ -295,61 +280,82 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                         name="unitRegistrationMode"
                         value={rowMode ?? activeUnitMode}
                       />
-                      <input
-                        name="block"
-                        defaultValue={unit.block ?? ""}
-                        maxLength={rowIsHorizontal ? 2 : undefined}
-                        placeholder={rowIsHorizontal ? "Quadra" : "Bloco"}
-                        aria-label={rowIsHorizontal ? "Quadra" : "Bloco"}
-                      />
+                      <label>
+                        {rowIsHorizontal ? "Quadra" : "Bloco"}
+                        <input
+                          name="block"
+                          defaultValue={unit.block ?? ""}
+                          maxLength={rowIsHorizontal ? 2 : undefined}
+                          placeholder={rowIsHorizontal ? "Qd" : "Bloco"}
+                          aria-label={rowIsHorizontal ? "Quadra" : "Bloco"}
+                        />
+                      </label>
                       {rowIsHorizontal ? (
                         <>
-                          <input
-                            name="number"
-                            defaultValue={unit.number}
-                            maxLength={3}
-                            placeholder="Lote"
-                            aria-label="Lote"
-                            required
-                          />
-                          <input
-                            name="street"
-                            defaultValue={metadataValue(unit, "street")}
-                            placeholder="Endereco"
-                            aria-label="Endereco"
-                          />
-                          <input
-                            name="addressNumber"
-                            defaultValue={metadataValue(unit, "addressNumber")}
-                            maxLength={5}
-                            placeholder="Numero"
-                            aria-label="Numero"
-                          />
+                          <label>
+                            Lote
+                            <input
+                              name="number"
+                              defaultValue={unit.number}
+                              maxLength={3}
+                              placeholder="Lote"
+                              aria-label="Lote"
+                              required
+                            />
+                          </label>
+                          <label>
+                            Endereco
+                            <input
+                              name="street"
+                              defaultValue={metadataValue(unit, "street")}
+                              placeholder="Rua, avenida ou alameda"
+                              aria-label="Endereco"
+                            />
+                          </label>
+                          <label>
+                            Numero
+                            <input
+                              name="addressNumber"
+                              defaultValue={metadataValue(unit, "addressNumber")}
+                              maxLength={5}
+                              placeholder="Num."
+                              aria-label="Numero"
+                            />
+                          </label>
                         </>
                       ) : (
                         <>
-                          <input
-                            name="floor"
-                            defaultValue={unit.floor ?? ""}
-                            placeholder="Andar"
-                            aria-label="Andar"
-                          />
-                          <input
-                            name="number"
-                            defaultValue={unit.number}
-                            placeholder="Unidade"
-                            aria-label="Unidade"
-                            required
-                          />
+                          <label>
+                            Andar
+                            <input
+                              name="floor"
+                              defaultValue={unit.floor ?? ""}
+                              placeholder="Andar"
+                              aria-label="Andar"
+                            />
+                          </label>
+                          <label>
+                            Unidade
+                            <input
+                              name="number"
+                              defaultValue={unit.number}
+                              placeholder="Unidade"
+                              aria-label="Unidade"
+                              required
+                            />
+                          </label>
                         </>
                       )}
-                      <input
-                        name="complement"
-                        defaultValue={metadataValue(unit, "complement")}
-                        maxLength={3}
-                        placeholder="Complemento"
-                        aria-label="Complemento"
-                      />
+                      <label>
+                        Complemento
+                        <input
+                          name="complement"
+                          defaultValue={metadataValue(unit, "complement")}
+                          maxLength={3}
+                          placeholder="Compl."
+                          aria-label="Complemento"
+                        />
+                      </label>
                       <button type="submit">Salvar</button>
                     </form>
                   </div>
