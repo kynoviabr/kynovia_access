@@ -31,6 +31,7 @@ type Unit = {
   block: string | null;
   floor: string | null;
   id: string;
+  metadata: unknown;
   number: string;
 };
 
@@ -53,14 +54,64 @@ type ResidentVehicle = {
 
 export const dynamic = "force-dynamic";
 
-function unitLabel(unit: Unit | undefined) {
+type UnitRegistrationMode = "horizontal" | "vertical" | null;
+
+function unitMetadata(unit: Unit) {
+  return unit.metadata && typeof unit.metadata === "object" && !Array.isArray(unit.metadata)
+    ? (unit.metadata as Record<string, unknown>)
+    : {};
+}
+
+function unitMetadataValue(unit: Unit, key: string) {
+  const value = unitMetadata(unit)[key];
+  return typeof value === "string" ? value : "";
+}
+
+function unitFields(unit: Unit | undefined, mode: UnitRegistrationMode) {
   if (!unit) {
-    return "Unidade removida";
+    return [{ label: "Unidade", value: "Unidade removida" }];
   }
 
-  return [unit.block, unit.number, unit.floor ? `${unit.floor} andar` : null]
+  if (mode === "horizontal") {
+    return [
+      { label: "Quadra", value: unit.block ?? "-" },
+      { label: "Lote", value: unit.number || "-" },
+      { label: "Rua", value: unitMetadataValue(unit, "street") || "-" },
+      { label: "Numero", value: unitMetadataValue(unit, "addressNumber") || "-" }
+    ];
+  }
+
+  return [
+    { label: "Bloco", value: unit.block ?? "-" },
+    { label: "Andar", value: unit.floor ?? "-" },
+    { label: "Unidade", value: unit.number || "-" }
+  ];
+}
+
+function unitLabel(unit: Unit | undefined, mode: UnitRegistrationMode) {
+  return unitFields(unit, mode)
+    .map((field) => `${field.label}: ${field.value}`)
     .filter(Boolean)
     .join(" / ");
+}
+
+function UnitStructurePreview({
+  mode,
+  unit
+}: {
+  mode: UnitRegistrationMode;
+  unit: Unit | undefined;
+}) {
+  return (
+    <div className="unit-structure-preview">
+      {unitFields(unit, mode).map((field) => (
+        <span key={field.label}>
+          <strong>{field.label}</strong>
+          <em>{field.value}</em>
+        </span>
+      ))}
+    </div>
+  );
 }
 
 function optionLabel(value: string) {
@@ -124,6 +175,8 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
   const queryParams = await searchParams;
 
   const { condominium } = context;
+  const configuredUnitMode = condominium.unitRegistrationMode;
+
   const searchTerm = queryParams.q?.trim() ?? "";
   const safeSearchTerm = sanitizeSearch(searchTerm);
   const statusFilter = queryParams.status?.trim() ?? "";
@@ -152,7 +205,7 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
     residentsQuery,
     supabase
       .from("units")
-      .select("id, block, number, floor")
+      .select("id, block, number, floor, metadata")
       .eq("condominium_id", condominium.id)
       .order("block", { ascending: true })
       .order("number", { ascending: true })
@@ -201,6 +254,18 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
       {failure ? <p className="form-error">{failure}</p> : null}
       {residentsError ? <p className="form-error">Falha ao carregar moradores.</p> : null}
       {unitsError ? <p className="form-error">Falha ao carregar unidades.</p> : null}
+      {!configuredUnitMode ? (
+        <section className="onboarding-callout">
+          <strong>Estrutura de unidades pendente</strong>
+          <p>
+            Configure o tipo de condominio em Configuracoes para padronizar os vinculos exibidos em
+            moradores e veiculos. Voce ainda pode acessar este modulo.
+          </p>
+          <Link className="button-link secondary" href="/dashboard/settings?onboarding=unit_structure">
+            Configurar em Configuracoes
+          </Link>
+        </section>
+      ) : null}
 
       <section className="toolbar">
         <form className="filter-form">
@@ -231,6 +296,43 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
           <h2>Novo morador</h2>
           <form className="admin-form" action={createResidentAction}>
             <input name="condominiumId" type="hidden" value={condominium.id} />
+            <div className="form-block">
+              <strong>Unidade do morador</strong>
+              <p className="field-hint">
+                {configuredUnitMode === "horizontal"
+                  ? "Selecione pela estrutura Quadra, Lote, Rua e Numero."
+                  : "Selecione pela estrutura Bloco, Andar e Unidade."}
+              </p>
+              <div className="field-preview">
+                {(configuredUnitMode === "horizontal"
+                  ? ["Quadra", "Lote", "Rua", "Numero"]
+                  : ["Bloco", "Andar", "Unidade"]
+                ).map((field) => (
+                  <span key={field}>{field}</span>
+                ))}
+              </div>
+              <label className="structured-select-field">
+                Unidade
+                <select name="unitId" required>
+                  <option value="">Selecione a unidade</option>
+                  {units.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unitLabel(unit, configuredUnitMode)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Relacao com a unidade
+                <select name="relationship" defaultValue="resident">
+                  {residentUnitRelationships.map((relationship) => (
+                    <option key={relationship} value={relationship}>
+                      {optionLabel(relationship)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
             <label>
               Nome completo
               <input name="fullName" required placeholder="Maria Silva" />
@@ -322,17 +424,27 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                 <div className="record-subgrid">
                   <div>
                     <h3>Unidades</h3>
+                    <p className="field-hint">
+                      Selecao estruturada por{" "}
+                      {configuredUnitMode === "horizontal"
+                        ? "quadra, lote, rua e numero"
+                        : "bloco, andar e unidade"}
+                      .
+                    </p>
                     <form className="inline-form compact-form" action={linkResidentUnitAction}>
                       <input name="condominiumId" type="hidden" value={condominium.id} />
                       <input name="residentId" type="hidden" value={resident.id} />
-                      <select name="unitId" required>
-                        <option value="">Unidade</option>
-                        {units.map((unit) => (
-                          <option key={unit.id} value={unit.id}>
-                            {unitLabel(unit)}
-                          </option>
-                        ))}
-                      </select>
+                      <label className="structured-select-field">
+                        Unidade
+                        <select name="unitId" required>
+                          <option value="">Selecione a unidade</option>
+                          {units.map((unit) => (
+                            <option key={unit.id} value={unit.id}>
+                              {unitLabel(unit, configuredUnitMode)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
                       <select name="relationship" defaultValue="resident">
                         {residentUnitRelationships.map((relationship) => (
                           <option key={relationship} value={relationship}>
@@ -351,9 +463,15 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                         <form className="chip" action={unlinkResidentUnitAction} key={link.id}>
                           <input name="condominiumId" type="hidden" value={condominium.id} />
                           <input name="residentUnitId" type="hidden" value={link.id} />
-                          <span>
-                            {unitLabel(unitsById.get(link.unit_id))} - {optionLabel(link.relationship)}
-                            {link.is_primary ? " - principal" : ""}
+                          <span className="unit-chip-content">
+                            <UnitStructurePreview
+                              mode={configuredUnitMode}
+                              unit={unitsById.get(link.unit_id)}
+                            />
+                            <small>
+                              {optionLabel(link.relationship)}
+                              {link.is_primary ? " - principal" : ""}
+                            </small>
                           </span>
                           <button className="secondary compact-button" type="submit">
                             Remover
@@ -365,9 +483,30 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
 
                   <div>
                     <h3>Veiculos</h3>
+                    <p className="field-hint">
+                      A unidade de referencia do veiculo segue o mesmo padrao selecionado para o
+                      condominio.
+                    </p>
                     <form className="inline-form compact-form" action={createResidentVehicleAction}>
                       <input name="condominiumId" type="hidden" value={condominium.id} />
                       <input name="residentId" type="hidden" value={resident.id} />
+                      <label className="structured-select-field">
+                        Unidade de referencia
+                        <select disabled defaultValue={links[0]?.unit_id ?? ""}>
+                          <option value="">Vincule uma unidade ao morador</option>
+                          {units.map((unit) => (
+                            <option key={unit.id} value={unit.id}>
+                              {unitLabel(unit, configuredUnitMode)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      {links[0] ? (
+                        <UnitStructurePreview
+                          mode={configuredUnitMode}
+                          unit={unitsById.get(links[0].unit_id)}
+                        />
+                      ) : null}
                       <input name="plate" required placeholder="ABC1D23" />
                       <input name="label" placeholder="Descricao" />
                       <button type="submit">Adicionar</button>
@@ -378,6 +517,12 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
                           <form className="inline-form compact-form" action={updateResidentVehicleAction}>
                             <input name="condominiumId" type="hidden" value={condominium.id} />
                             <input name="vehicleId" type="hidden" value={vehicle.id} />
+                            {links[0] ? (
+                              <UnitStructurePreview
+                                mode={configuredUnitMode}
+                                unit={unitsById.get(links[0].unit_id)}
+                              />
+                            ) : null}
                             <input name="plate" required defaultValue={vehicle.plate} />
                             <input name="label" defaultValue={vehicle.label ?? ""} />
                             <select name="status" defaultValue={vehicle.status}>

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { AdminDashboardShell } from "@kynovia/ui";
-import { signOutAction } from "../actions";
+import { redirect } from "next/navigation";
 import { requireAuthorizedProfile } from "../../lib/auth/session";
 import { getCondoAdminContext } from "../../lib/condominiums/context";
 import { getAllowedOperationalModules } from "../../lib/operations/modules";
@@ -13,14 +12,22 @@ export default async function DashboardPage() {
   const condominium = context?.condominium ?? null;
   const modules = getAllowedOperationalModules(profile.role);
 
+  if (condominium && !condominium.unitRegistrationMode) {
+    redirect("/dashboard/settings?onboarding=unit_structure");
+  }
+
   return (
-    <AdminDashboardShell
-      eyebrow="Condo Admin"
-      title={condominium ? condominium.name : "Administracao do condominio"}
-      description="Portal do administrador do condominio para gestao operacional do proprio ambiente."
-      profile={profile}
-      signOutAction={signOutAction}
-    >
+    <main className="admin-shell">
+      <header className="admin-header">
+        <div>
+          <p className="eyebrow">Condo Admin</p>
+          <h1>Dashboard operacional</h1>
+          <p className="muted">
+            Visao inicial da administracao do condominio. Use o menu lateral para abrir apenas o
+            modulo operacional desejado.
+          </p>
+        </div>
+      </header>
       {condominium ? (
         <>
           <section className="condo-overview">
@@ -53,6 +60,6 @@ export default async function DashboardPage() {
           implantacao ao suporte Kynovia.
         </p>
       )}
-    </AdminDashboardShell>
+    </main>
   );
 }
