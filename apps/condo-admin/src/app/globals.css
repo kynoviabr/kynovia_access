@@ -605,11 +605,11 @@ button:disabled {
 
 .unit-create-form,
 .unit-row-form-horizontal {
-  --unit-quadra-col: calc(4ch + 28px);
-  --unit-lote-col: calc(4ch + 28px);
-  --unit-numero-col: calc(8ch + 28px);
-  --unit-complemento-col: calc(3ch + 28px);
-  --unit-save-col: calc(6ch + 24px);
+  --unit-quadra-col: 4.5rem;
+  --unit-lote-col: 4.5rem;
+  --unit-numero-col: 5.75rem;
+  --unit-complemento-col: 4.5rem;
+  --unit-save-col: 4.25rem;
 }
 
 .unit-create-form {
@@ -639,14 +639,15 @@ button:disabled {
   border-bottom: 1px solid #e2e8f0;
   display: grid;
   gap: 0;
-  overflow-x: hidden;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .unit-list-row {
   align-items: end;
-  column-gap: 12px;
+  column-gap: 8px;
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
+  grid-template-columns: 24px minmax(0, 1fr);
   min-width: 0;
 }
 
@@ -657,7 +658,10 @@ button:disabled {
 
 .unit-list-row > input[type="checkbox"] {
   align-self: center;
+  height: 16px;
   justify-self: start;
+  margin-left: 4px;
+  width: 16px;
 }
 
 .unit-list-row > .unit-row-form {
@@ -665,9 +669,9 @@ button:disabled {
 }
 
 .unit-row-form-horizontal {
-  column-gap: 10px;
+  column-gap: 8px;
   grid-template-columns:
-    var(--unit-quadra-col) var(--unit-lote-col) minmax(120px, 1fr)
+    var(--unit-quadra-col) var(--unit-lote-col) minmax(88px, 1fr)
     var(--unit-numero-col) var(--unit-complemento-col) var(--unit-save-col);
 }
 
