@@ -695,11 +695,15 @@ button:disabled {
   column-gap: 8px;
   grid-template-columns:
     var(--unit-quadra-col) var(--unit-lote-col) minmax(64px, 1fr)
-    var(--unit-numero-col) var(--unit-complemento-col) var(--unit-save-col);
+    var(--unit-numero-col) 3.5rem 4.75rem;
 }
 
 .unit-row-form-horizontal label {
   min-width: 0;
+}
+
+.unit-row-form-horizontal label:last-of-type input {
+  padding: 0 6px;
 }
 
 .unit-row-form-vertical {
