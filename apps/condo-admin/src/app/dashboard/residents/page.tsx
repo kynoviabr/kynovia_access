@@ -240,47 +240,53 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
           <h2>Novo morador</h2>
           <form className="admin-form" action={createResidentAction}>
             <input name="condominiumId" type="hidden" value={condominium.id} />
-            <label>
-              Unidade vinculada
-              <select name="unitId" required>
-                <option value="">Selecione a unidade</option>
-                {units.map((unit) => (
-                  <option key={unit.id} value={unit.id}>
-                    {unitLabel(unit)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Tipo de vínculo
-              <select name="relationship" defaultValue="resident" required>
-                {residentUnitRelationships.map((relationship) => (
-                  <option key={relationship} value={relationship}>
-                    {optionLabel(relationship)}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="form-row">
+              <label>
+                Unidade vinculada
+                <select name="unitId" required>
+                  <option value="">Selecione a unidade</option>
+                  {units.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unitLabel(unit)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Tipo de vínculo
+                <select name="relationship" defaultValue="resident" required>
+                  {residentUnitRelationships.map((relationship) => (
+                    <option key={relationship} value={relationship}>
+                      {optionLabel(relationship)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
             <label>
               Nome completo
               <input name="fullName" required placeholder="Maria Silva" />
             </label>
-            <label>
-              CPF
-              <input name="document" required placeholder="000.000.000-00" />
-            </label>
-            <label>
-              Data de nascimento
-              <input name="birthDate" type="date" />
-            </label>
-            <label>
-              Telefone
-              <input name="phone" placeholder="(11) 99999-0000" />
-            </label>
-            <label>
-              WhatsApp
-              <input name="whatsapp" placeholder="(11) 99999-0000" />
-            </label>
+            <div className="form-row">
+              <label>
+                CPF
+                <input name="document" required placeholder="000.000.000-00" />
+              </label>
+              <label>
+                Data de nascimento
+                <input name="birthDate" type="date" />
+              </label>
+            </div>
+            <div className="form-row">
+              <label>
+                Telefone
+                <input name="phone" placeholder="(11) 99999-0000" />
+              </label>
+              <label>
+                WhatsApp
+                <input name="whatsapp" placeholder="(11) 99999-0000" />
+              </label>
+            </div>
             <label>
               E-mail
               <input name="email" type="email" placeholder="morador@example.com" />
@@ -297,20 +303,22 @@ export default async function ResidentsPage({ searchParams }: { searchParams: Se
               </p>
               <input disabled type="file" accept="image/*" />
             </div>
-            <label>
-              Status
-              <select name="status" defaultValue="active">
-                {residentStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {optionLabel(status)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Motivo do bloqueio
-              <input name="blockReason" placeholder="Obrigatorio apenas se bloqueado" />
-            </label>
+            <div className="form-row">
+              <label>
+                Status
+                <select name="status" defaultValue="active">
+                  {residentStatuses.map((status) => (
+                    <option key={status} value={status}>
+                      {optionLabel(status)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Motivo do bloqueio
+                <input name="blockReason" placeholder="Obrigatorio apenas se bloqueado" />
+              </label>
+            </div>
             <button type="submit">Cadastrar morador</button>
           </form>
         </div>

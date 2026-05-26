@@ -395,6 +395,12 @@ button.secondary,
   gap: 12px;
 }
 
+.form-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .filter-form {
   align-items: end;
   grid-template-columns: minmax(220px, 1fr) auto auto;
@@ -568,5 +574,11 @@ th {
 
   .admin-header {
     display: grid;
+  }
+}
+
+@media (max-width: 520px) {
+  .form-row {
+    grid-template-columns: 1fr;
   }
 }
