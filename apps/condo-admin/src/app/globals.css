@@ -166,6 +166,136 @@ button.secondary,
   gap: 12px;
 }
 
+.condo-layout {
+  background: #f8fafc;
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.condo-sidebar {
+  background: #0f172a;
+  border-right: 1px solid rgba(148, 163, 184, 0.2);
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 24px 18px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.condo-sidebar-brand,
+.condo-topbar-condominium {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+}
+
+.condo-sidebar-brand strong,
+.condo-topbar-condominium strong {
+  display: block;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.condo-sidebar-brand span:not(.condo-brand-mark),
+.condo-topbar-condominium span:not(.condo-topbar-logo) {
+  color: #94a3b8;
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.condo-brand-mark,
+.condo-topbar-logo {
+  align-items: center;
+  background: #14b8a6;
+  border-radius: 8px;
+  color: #083344;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  font-weight: 900;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+.condo-nav {
+  display: grid;
+  gap: 6px;
+}
+
+.condo-nav-link {
+  align-items: center;
+  border-radius: 8px;
+  color: #dbeafe;
+  display: flex;
+  gap: 10px;
+  min-height: 40px;
+  padding: 8px 10px;
+  text-decoration: none;
+}
+
+.condo-nav-link:hover,
+.condo-nav-link.active {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+.condo-nav-link.active {
+  box-shadow: inset 3px 0 0 #14b8a6;
+}
+
+.condo-nav-icon {
+  align-items: center;
+  background: #334155;
+  border-radius: 7px;
+  color: #f8fafc;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  font-weight: 900;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.condo-main {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+}
+
+.condo-topbar {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid #dbe4ef;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  min-height: 72px;
+  padding: 14px 32px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.condo-content {
+  min-width: 0;
+}
+
+.condo-main .admin-shell {
+  min-height: auto;
+  padding: 32px;
+}
+
 .admin-shell {
   min-height: 100vh;
   padding: 40px;
@@ -404,6 +534,25 @@ th {
 }
 
 @media (max-width: 760px) {
+  .condo-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .condo-sidebar {
+    height: auto;
+    position: static;
+  }
+
+  .condo-nav {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .condo-topbar {
+    align-items: flex-start;
+    display: grid;
+    padding: 16px 24px;
+  }
+
   .admin-shell {
     padding: 24px;
   }
