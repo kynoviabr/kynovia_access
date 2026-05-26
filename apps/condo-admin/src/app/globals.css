@@ -600,7 +600,7 @@ button:disabled {
 .unit-create-form,
 .unit-row-form {
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .unit-create-form {
@@ -613,7 +613,7 @@ button:disabled {
 }
 
 .unit-create-form-horizontal {
-  grid-template-columns: 54px 70px minmax(300px, 1fr) 92px 76px max-content;
+  grid-template-columns: 8ch 8ch minmax(280px, 1fr) 12ch 10ch 10ch;
 }
 
 .unit-create-form-vertical {
@@ -633,10 +633,10 @@ button:disabled {
 
 .unit-list-row {
   align-items: end;
-  column-gap: 12px;
+  column-gap: 16px;
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
-  min-width: 780px;
+  min-width: 820px;
 }
 
 .unit-list-row {
@@ -654,7 +654,7 @@ button:disabled {
 }
 
 .unit-row-form-horizontal {
-  grid-template-columns: 54px 70px minmax(300px, 1fr) 92px 76px max-content;
+  grid-template-columns: 8ch 8ch minmax(280px, 1fr) 12ch 10ch 10ch;
 }
 
 .unit-row-form-vertical {
@@ -664,15 +664,15 @@ button:disabled {
 .unit-create-form-horizontal button,
 .unit-row-form button {
   min-height: 44px;
-  padding: 0 14px;
-  width: auto;
+  padding: 0;
+  width: 10ch;
 }
 
 .unit-list-row .unit-row-form button {
   align-self: end;
-  min-width: auto;
-  padding: 0 14px;
-  width: max-content;
+  min-width: 10ch;
+  padding: 0;
+  width: 10ch;
 }
 
 .bulk-actions {

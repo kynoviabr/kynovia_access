@@ -188,11 +188,11 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
               <>
                 <label>
                   Quadra
-                  <input maxLength={2} name="horizontalBlock" placeholder="Ex.: A" />
+                  <input maxLength={4} name="horizontalBlock" placeholder="Qd." />
                 </label>
                 <label>
                   Lote
-                  <input maxLength={3} name="horizontalNumber" placeholder="Ex.: 30" required />
+                  <input maxLength={4} name="horizontalNumber" placeholder="Lote" required />
                 </label>
                 <label>
                   Endereco
@@ -200,7 +200,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                 </label>
                 <label>
                   Numero
-                  <input maxLength={5} name="addressNumber" placeholder="Ex.: 31" />
+                  <input maxLength={8} name="addressNumber" placeholder="Numero" />
                 </label>
                 <label>
                   Complemento
@@ -285,8 +285,8 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                         <input
                           name="block"
                           defaultValue={unit.block ?? ""}
-                          maxLength={rowIsHorizontal ? 2 : undefined}
-                          placeholder={rowIsHorizontal ? "Qd" : "Bloco"}
+                          maxLength={rowIsHorizontal ? 4 : undefined}
+                          placeholder={rowIsHorizontal ? "Qd." : "Bloco"}
                           aria-label={rowIsHorizontal ? "Quadra" : "Bloco"}
                         />
                       </label>
@@ -297,7 +297,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                             <input
                               name="number"
                               defaultValue={unit.number}
-                              maxLength={3}
+                              maxLength={4}
                               placeholder="Lote"
                               aria-label="Lote"
                               required
@@ -317,8 +317,8 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                             <input
                               name="addressNumber"
                               defaultValue={metadataValue(unit, "addressNumber")}
-                              maxLength={5}
-                              placeholder="Num."
+                              maxLength={8}
+                              placeholder="Numero"
                               aria-label="Numero"
                             />
                           </label>
