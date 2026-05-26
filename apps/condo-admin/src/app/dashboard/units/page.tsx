@@ -321,7 +321,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                         name="unitRegistrationMode"
                         value={rowMode ?? activeUnitMode}
                       />
-                      <label>
+                      <label className="unit-row-field unit-row-field-block">
                         {rowIsHorizontal ? "Quadra" : "Bloco"}
                         <input
                           name="block"
@@ -333,7 +333,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                       </label>
                       {rowIsHorizontal ? (
                         <>
-                          <label>
+                          <label className="unit-row-field unit-row-field-lot">
                             Lote
                             <input
                               name="number"
@@ -344,7 +344,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                               required
                             />
                           </label>
-                          <label>
+                          <label className="unit-row-field unit-row-field-street">
                             Endereco
                             <input
                               name="street"
@@ -353,7 +353,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                               aria-label="Endereco"
                             />
                           </label>
-                          <label>
+                          <label className="unit-row-field unit-row-field-number">
                             Numero
                             <input
                               name="addressNumber"
@@ -366,7 +366,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                         </>
                       ) : (
                         <>
-                          <label>
+                          <label className="unit-row-field unit-row-field-floor">
                             Andar
                             <input
                               name="floor"
@@ -375,7 +375,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                               aria-label="Andar"
                             />
                           </label>
-                          <label>
+                          <label className="unit-row-field unit-row-field-unit">
                             Unidade
                             <input
                               name="number"
@@ -387,7 +387,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                           </label>
                         </>
                       )}
-                      <label>
+                      <label className="unit-row-field unit-row-field-complement">
                         Complemento
                         <input
                           name="complement"
@@ -397,7 +397,7 @@ export default async function UnitsPage({ searchParams }: { searchParams: Search
                           aria-label="Complemento"
                         />
                       </label>
-                      <button type="submit">Salvar</button>
+                      <button className="unit-row-save" type="submit">Salvar</button>
                     </form>
                   </div>
                 );
