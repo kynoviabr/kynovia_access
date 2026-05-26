@@ -603,6 +603,15 @@ button:disabled {
   gap: 16px;
 }
 
+.unit-create-form,
+.unit-row-form-horizontal {
+  --unit-quadra-col: calc(4ch + 28px);
+  --unit-lote-col: calc(4ch + 28px);
+  --unit-numero-col: calc(8ch + 28px);
+  --unit-complemento-col: calc(3ch + 28px);
+  --unit-save-col: calc(6ch + 24px);
+}
+
 .unit-create-form {
   align-items: end;
   background: #f8fafc;
@@ -613,7 +622,9 @@ button:disabled {
 }
 
 .unit-create-form-horizontal {
-  grid-template-columns: 8ch 8ch minmax(280px, 1fr) 12ch 10ch 10ch;
+  grid-template-columns:
+    var(--unit-quadra-col) var(--unit-lote-col) minmax(220px, 1fr)
+    var(--unit-numero-col) var(--unit-complemento-col) auto;
 }
 
 .unit-create-form-vertical {
@@ -628,15 +639,15 @@ button:disabled {
   border-bottom: 1px solid #e2e8f0;
   display: grid;
   gap: 0;
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
 .unit-list-row {
   align-items: end;
-  column-gap: 16px;
+  column-gap: 12px;
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
-  min-width: 820px;
+  min-width: 0;
 }
 
 .unit-list-row {
@@ -654,7 +665,10 @@ button:disabled {
 }
 
 .unit-row-form-horizontal {
-  grid-template-columns: 8ch 8ch minmax(280px, 1fr) 12ch 10ch 10ch;
+  column-gap: 10px;
+  grid-template-columns:
+    var(--unit-quadra-col) var(--unit-lote-col) minmax(120px, 1fr)
+    var(--unit-numero-col) var(--unit-complemento-col) var(--unit-save-col);
 }
 
 .unit-row-form-vertical {
@@ -665,14 +679,13 @@ button:disabled {
 .unit-row-form button {
   min-height: 44px;
   padding: 0;
-  width: 10ch;
 }
 
 .unit-list-row .unit-row-form button {
   align-self: end;
-  min-width: 10ch;
+  min-width: 0;
   padding: 0;
-  width: 10ch;
+  width: 100%;
 }
 
 .bulk-actions {
