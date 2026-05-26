@@ -695,7 +695,7 @@ button:disabled {
 .unit-row-form-horizontal {
   column-gap: 10px;
   grid-template-columns:
-    4.25rem 4.25rem minmax(140px, 1fr) 5rem 5rem 5rem;
+    4.25rem 4.25rem minmax(60px, 1fr) 5rem 5rem 5rem;
 }
 
 .unit-row-form-horizontal label {
@@ -703,7 +703,10 @@ button:disabled {
 }
 
 .unit-row-form-horizontal label:last-of-type input {
+  max-width: 4.75rem;
+  min-width: 0;
   padding: 0 8px;
+  width: 4.75rem;
 }
 
 .unit-row-form-vertical {
@@ -892,7 +895,6 @@ th {
   .inline-form,
   .unit-create-form-horizontal,
   .unit-create-form-vertical,
-  .unit-row-form,
   .record-grid,
   .record-subgrid {
     align-items: stretch;
